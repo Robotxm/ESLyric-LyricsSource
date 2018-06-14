@@ -1,0 +1,226 @@
+/**
+ * KRC Parser
+ * Original Author: btx258
+ * Modify: Robotxm
+ * Version: 0.2.0
+ * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
+**/
+
+// Define whether show dual-line desktop lyrics or not when translated lyrics doesn't exsit.
+// NOTICE: No matter whatever value is set, you must set ESLyric to show dual-line lyric.
+// true: Show
+// false: Hide
+// 当没有翻译歌词存在时，是否以双行样式显示桌面歌词。
+// 注意：无论此处设置为何值，都必须在 ESLyric 中设置桌面歌词的“显示模式”为“双行显示”。
+// true: 以双行显示
+// false: 以单行显示 
+var dual_line = false;
+
+function get_my_name() {
+    return "KRC Parser Plus";
+}
+
+function get_version() {
+    return "0.2.0";
+}
+
+function get_author() {
+    return "wistaria & Robotxm";
+}
+
+function is_our_type(type) {
+    return type.toLowerCase() == "krc";
+}
+
+function start_parse(data) {
+
+    var zip_data = null;
+    var krc_text = null;
+    zip_data = krchex_xor(data);
+
+    if (!zip_data) return;
+
+    unzip_data = utils.ZUnCompress(zip_data);
+
+    if (!unzip_data) return;
+
+    krc_text = utils.UTF8ToUnicode(unzip_data);
+
+    return krc2lrc(krc_text);
+}
+
+function krchex_xor(s) {
+    var magic_bytes = [0x6b, 0x72, 0x63, 0x31]; // 'k' , 'r' , 'c' ,'1'
+    if (s.length < magic_bytes.length) return;
+
+    for (var i = 0; i < magic_bytes.length; ++i) {
+        var c = s.charCodeAt(i);
+        if (c != magic_bytes[i]) return;
+    }
+
+    var enc_key = [0x40, 0x47, 0x61, 0x77, 0x5e, 0x32, 0x74, 0x47, 0x51, 0x36, 0x31, 0x2d, 0xce, 0xd2, 0x6e, 0x69];
+
+    var buf = "";
+    var krc_header = magic_bytes.length; //first 4 bytes
+    for (var i = krc_header; i < s.length; ++i) {
+
+        var x1 = s.charCodeAt(i);;
+        var x2 = enc_key[(i - krc_header) % 16];
+        buf += String.fromCharCode(x1 ^ x2);
+    }
+    return buf;
+}
+
+function krc2lrc(text) {
+
+    var lrc_buf = "";
+    var regx_meta_info = /^\[([^\d:][^:]*):([^:]*)\]\s*$/;
+    var regx_timestamps1 = /^\[(\d*,\d*)\]/;
+    var regx_timestamps2 = /<(\d*,\d*,\d*)>([^<]*)/g;
+    var lrc_meta_info = ["ar", "ti", "al", "by", "offset"];
+    var meta_info_unlock = true;
+    var line, arr;
+    var _end = 0;
+
+    // Get translated lyrics - Added by Robotxm
+    var jkrc, trans;
+    var _lrc_buf = "";
+    var lc = 0;
+    var btrans = false;
+    if (text.indexOf("language") != -1 && text.indexOf("eyJjb250ZW50IjpbXSwidmVyc2lvbiI6MX0=") == -1) {
+        btrans = true;
+        var regx_lrc = text.match(/language:(.*)/g);
+        regx_lrc[0] = regx_lrc[0].substring(0, regx_lrc[0].length - 1);
+        var lrc = unescape(base64decode(regx_lrc[0].replace("language:", "")).replace(/\\u/g, '%u'));
+        var jkrc = eval('(' + lrc + ')');
+        //translation
+        for (var j = 0; j < jkrc.content.length; j++) {
+            if (jkrc.content[j].type == 1) {
+                var trans = jkrc.content[j].lyricContent;
+            }
+        }
+    }
+
+    var lines = text.split(/[\n\r]/);
+    //convert...
+    for (var i = 0; i < lines.length; ++i) {
+
+        line = lines[i];
+        //copy known meta tag back.
+        if (meta_info_unlock && (arr = regx_meta_info.exec(line))) {
+            for (var idx in lrc_meta_info) {
+                if (lrc_meta_info[idx] == arr[1]) {
+                    lrc_buf = lrc_buf + arr[0] + "\r\n";
+                    lc++;
+                    break;
+                }
+            }
+            var lrc_meta = lrc_buf;
+        } else if ((arr = regx_timestamps1.exec(line))) //parse lyric line
+        {
+
+            meta_info_unlock = false;
+            var buf = "";
+            var _time_array = arr[1].split(',');
+            var _start = parseInt(_time_array[0]);
+            var _duaration = parseInt(_time_array[1]);
+            while ((arr = regx_timestamps2.exec(line))) {
+                var _sub_time = arr[1].split(',');
+                var _sub_start = parseInt(_sub_time[0]);
+                var _sub_duaration = parseInt(_sub_time[1]);
+                var cnt = arr[2];
+                buf = buf + "[" + format_time(_start + _sub_start) + "]" + cnt;
+                _duaration = parseInt(_sub_start + _sub_duaration);
+            }
+            buf = buf + "[" + format_time(_start + _duaration) + "]";
+            _end = _start + _duaration;
+            lrc_buf += buf + "\r\n";
+        }
+    }
+    if (btrans) {
+        var lrc_lines = lrc_buf.split("\r\n");
+        for (var k = 0; k < trans.length; k++) {
+            if (k != trans.length - 1) {
+                _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].slice(0, 10) + trans[k] + "\r\n";
+            } else {
+                _lrc_buf += lrc_lines[k + lc] + "\r\n" + "[" + format_time(_end + 1000) + "]" + trans[k] + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
+            }
+        }
+        lrc_buf = lrc_meta + "\r\n" + _lrc_buf;
+	}
+	
+	if(!dual_line && !btrans){
+		
+		var lrc_lines = lrc_buf.split("\r\n");
+		
+        for (var k = 0; k < lrc_lines.length; k++) {
+             _lrc_buf += lrc_lines[k] + "\r\n" + lrc_lines[k].slice(-10) + "　　\r\n";
+        }
+		lrc_buf = _lrc_buf;
+	}
+    //fb.trace(lrc_buf);
+    return lrc_buf;
+}
+
+function zpad(n) {
+    var s = n.toString();
+    return (s.length < 2) ? "0" + s: s;
+}
+
+function format_time(time) {
+    var t = Math.abs(time / 1000);
+    var h = Math.floor(t / 3600);
+    t -= h * 3600;
+    var m = Math.floor(t / 60);
+    t -= m * 60;
+    var s = Math.floor(t);
+    var ms = t - s;
+    var str = (h ? zpad(h) + ":": "") + zpad(m) + ":" + zpad(s) + "." + zpad(Math.floor(ms * 100));
+    return str;
+}
+
+var base64DecodeChars = new Array( - 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1);
+
+function base64decode(str) {
+    var c1, c2, c3, c4;
+    var i, len, out;
+
+    len = str.length;
+    i = 0;
+    out = "";
+    while (i < len) {
+        /* c1 */
+        do {
+            c1 = base64DecodeChars[str.charCodeAt(i++) & 0xff];
+        } while ( i < len && c1 == - 1 );
+        if (c1 == -1) break;
+
+        /* c2 */
+        do {
+            c2 = base64DecodeChars[str.charCodeAt(i++) & 0xff];
+        } while ( i < len && c2 == - 1 );
+        if (c2 == -1) break;
+
+        out += String.fromCharCode((c1 << 2) | ((c2 & 0x30) >> 4));
+
+        /* c3 */
+        do {
+            c3 = str.charCodeAt(i++) & 0xff;
+            if (c3 == 61) return out;
+            c3 = base64DecodeChars[c3];
+        } while ( i < len && c3 == - 1 );
+        if (c3 == -1) break;
+
+        out += String.fromCharCode(((c2 & 0XF) << 4) | ((c3 & 0x3C) >> 2));
+
+        /* c4 */
+        do {
+            c4 = str.charCodeAt(i++) & 0xff;
+            if (c4 == 61) return out;
+            c4 = base64DecodeChars[c4];
+        } while ( i < len && c4 == - 1 );
+        if (c4 == -1) break;
+        out += String.fromCharCode(((c3 & 0x03) << 6) | c4);
+    }
+    return out;
+}
