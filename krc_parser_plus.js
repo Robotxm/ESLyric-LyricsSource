@@ -2,7 +2,7 @@
  * KRC Parser
  * Original Author: btx258
  * Modify: Robotxm
- * Version: 0.2.0
+ * Version: 0.2.1
  * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
 **/
 
@@ -21,7 +21,7 @@ function get_my_name() {
 }
 
 function get_version() {
-    return "0.2.0";
+    return "0.2.1";
 }
 
 function get_author() {
@@ -61,7 +61,7 @@ function krchex_xor(s) {
     var enc_key = [0x40, 0x47, 0x61, 0x77, 0x5e, 0x32, 0x74, 0x47, 0x51, 0x36, 0x31, 0x2d, 0xce, 0xd2, 0x6e, 0x69];
 
     var buf = "";
-    var krc_header = magic_bytes.length; //first 4 bytes
+    var krc_header = magic_bytes.length; // First 4 bytes
     for (var i = krc_header; i < s.length; ++i) {
 
         var x1 = s.charCodeAt(i);;
@@ -93,7 +93,6 @@ function krc2lrc(text) {
         regx_lrc[0] = regx_lrc[0].substring(0, regx_lrc[0].length - 1);
         var lrc = unescape(base64decode(regx_lrc[0].replace("language:", "")).replace(/\\u/g, '%u'));
         var jkrc = eval('(' + lrc + ')');
-        //translation
         for (var j = 0; j < jkrc.content.length; j++) {
             if (jkrc.content[j].type == 1) {
                 var trans = jkrc.content[j].lyricContent;
@@ -102,11 +101,11 @@ function krc2lrc(text) {
     }
 
     var lines = text.split(/[\n\r]/);
-    //convert...
+    // Start conversion
     for (var i = 0; i < lines.length; ++i) {
 
         line = lines[i];
-        //copy known meta tag back.
+        // Copy known meta tag back
         if (meta_info_unlock && (arr = regx_meta_info.exec(line))) {
             for (var idx in lrc_meta_info) {
                 if (lrc_meta_info[idx] == arr[1]) {
@@ -116,9 +115,9 @@ function krc2lrc(text) {
                 }
             }
             var lrc_meta = lrc_buf;
-        } else if ((arr = regx_timestamps1.exec(line))) //parse lyric line
+        } else if ((arr = regx_timestamps1.exec(line))) 
         {
-
+            // Parse lyric line
             meta_info_unlock = false;
             var buf = "";
             var _time_array = arr[1].split(',');
@@ -153,12 +152,11 @@ function krc2lrc(text) {
 		
 		var lrc_lines = lrc_buf.split("\r\n");
 		
-        for (var k = 0; k < lrc_lines.length; k++) {
+        for (var k = lc - 1; k < lrc_lines.length; k++) {
              _lrc_buf += lrc_lines[k] + "\r\n" + lrc_lines[k].slice(-10) + "　　\r\n";
         }
 		lrc_buf = _lrc_buf;
 	}
-    //fb.trace(lrc_buf);
     return lrc_buf;
 }
 
