@@ -2,7 +2,7 @@
  * KRC Parser
  * Original Author: btx258
  * Modify: Robotxm
- * Version: 0.2.1
+ * Version: 0.2.2
  * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
 **/
 
@@ -21,7 +21,7 @@ function get_my_name() {
 }
 
 function get_version() {
-    return "0.2.1";
+    return "0.2.2";
 }
 
 function get_author() {
@@ -142,7 +142,7 @@ function krc2lrc(text) {
             if (k != trans.length - 1) {
                 _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].slice(0, 10) + trans[k] + "\r\n";
             } else {
-                _lrc_buf += lrc_lines[k + lc] + "\r\n" + "[" + format_time(_end + 1000) + "]" + trans[k] + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
+                _lrc_buf += lrc_lines[k + lc] + "\r\n" + "[" + format_time(_end + 1000) + "]" + trans[k] + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 2000) + "]　\r\n";
             }
         }
         lrc_buf = lrc_meta + "\r\n" + _lrc_buf;
@@ -152,8 +152,12 @@ function krc2lrc(text) {
 		
 		var lrc_lines = lrc_buf.split("\r\n");
 		
-        for (var k = lc - 1; k < lrc_lines.length; k++) {
-             _lrc_buf += lrc_lines[k] + "\r\n" + lrc_lines[k].slice(-10) + "　　\r\n";
+        for (var k = lc; k < lrc_lines.length; k++) {
+            if (k != lrc_lines.length -1){
+                 _lrc_buf += lrc_lines[k] + "\r\n" + lrc_lines[k + 1].slice(-10) + "　　\r\n";
+            } else {
+                 _lrc_buf += lrc_lines[k] + "\r\n" + "[" + format_time(_end + 1000) + "]" + "　　" + "[" + format_time(_end + 2000) + "]";
+            }
         }
 		lrc_buf = _lrc_buf;
 	}
