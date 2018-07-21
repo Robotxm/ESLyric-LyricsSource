@@ -2,7 +2,7 @@
  * KRC Parser
  * Original Author: btx258
  * Modify: Robotxm
- * Version: 0.2.2
+ * Version: 0.2.3
  * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
 **/
 
@@ -21,7 +21,7 @@ function get_my_name() {
 }
 
 function get_version() {
-    return "0.2.2";
+    return "0.2.3";
 }
 
 function get_author() {
@@ -154,7 +154,7 @@ function krc2lrc(text) {
 		
         for (var k = lc; k < lrc_lines.length; k++) {
             if (k != lrc_lines.length -1){
-                 _lrc_buf += lrc_lines[k] + "\r\n" + lrc_lines[k + 1].slice(-10) + "　　\r\n";
+                 _lrc_buf += lrc_lines[k] + "\r\n" + lrc_lines[k + 1].slice(0,10) + "　　\r\n";
             } else {
                  _lrc_buf += lrc_lines[k] + "\r\n" + "[" + format_time(_end + 1000) + "]" + "　　" + "[" + format_time(_end + 2000) + "]";
             }
