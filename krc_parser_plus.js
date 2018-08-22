@@ -1,15 +1,15 @@
 /**
  * KRC Parser
  * Original Author: btx258
- * Modify: Robotxm
- * Version: 0.2.6
+ * Modified by: Robotxm
+ * Version: 0.2.7
  * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
 **/
 
 // Define whether show dual-line desktop lyrics or not when translated lyrics doesn't exsit.
 // NOTICE: No matter whatever value is set, you must set ESLyric to show dual-line lyric.
-// true: Show
-// false: Hide
+// true: Dual line
+// false: Single line
 // 当没有翻译歌词存在时，是否以双行样式显示桌面歌词。
 // 注意：无论此处设置为何值，都必须在 ESLyric 中设置桌面歌词的“显示模式”为“双行显示”。
 // true: 以双行显示
@@ -21,7 +21,7 @@ function get_my_name() {
 }
 
 function get_version() {
-    return "0.2.6";
+    return "0.2.7";
 }
 
 function get_author() {
@@ -33,37 +33,27 @@ function is_our_type(type) {
 }
 
 function start_parse(data) {
-
     var zip_data = null;
     var krc_text = null;
     zip_data = krchex_xor(data);
-
     if (!zip_data) return;
-
     unzip_data = utils.ZUnCompress(zip_data);
-
     if (!unzip_data) return;
-
     krc_text = utils.UTF8ToUnicode(unzip_data);
-
     return krc2lrc(krc_text);
 }
 
 function krchex_xor(s) {
     var magic_bytes = [0x6b, 0x72, 0x63, 0x31]; // 'k' , 'r' , 'c' ,'1'
     if (s.length < magic_bytes.length) return;
-
     for (var i = 0; i < magic_bytes.length; ++i) {
         var c = s.charCodeAt(i);
         if (c != magic_bytes[i]) return;
     }
-
     var enc_key = [0x40, 0x47, 0x61, 0x77, 0x5e, 0x32, 0x74, 0x47, 0x51, 0x36, 0x31, 0x2d, 0xce, 0xd2, 0x6e, 0x69];
-
     var buf = "";
     var krc_header = magic_bytes.length; // First 4 bytes
     for (var i = krc_header; i < s.length; ++i) {
-
         var x1 = s.charCodeAt(i);;
         var x2 = enc_key[(i - krc_header) % 16];
         buf += String.fromCharCode(x1 ^ x2);
@@ -82,7 +72,7 @@ function krc2lrc(text) {
     var line, arr;
     var _end = 0;
 
-    // Get translated lyrics - Added by Robotxm
+    // Get translated lyrics
     var jkrc, trans;
     var _lrc_buf = "";
     var lc = 0;
@@ -99,11 +89,10 @@ function krc2lrc(text) {
             }
         }
     }
-
     var lines = text.split(/[\n\r]/);
+
     // Start conversion
     for (var i = 0; i < lines.length; ++i) {
-
         line = lines[i];
         // Copy known meta tag back
         if (meta_info_unlock && (arr = regx_meta_info.exec(line))) {
@@ -136,6 +125,8 @@ function krc2lrc(text) {
             lrc_buf += buf + "\r\n";
         }
     }
+
+    // Add translation if exists
     if (btrans) {
         var lrc_lines = lrc_buf.split("\r\n");
         for (var k = 0; k < trans.length; k++) {
@@ -146,22 +137,36 @@ function krc2lrc(text) {
             }
         }
         lrc_buf = lrc_meta + "\r\n" + _lrc_buf;
-	}
-	
-	if(!dual_line && !btrans){
-		
-		var lrc_lines = lrc_buf.split("\r\n");
-		
+    }
+
+    // Process something about single-line mode
+    if(!dual_line && !btrans){
+        var lrc_lines = lrc_buf.split("\r\n");
         for (var k = lc; k < lrc_lines.length; k++) {
-            //if (k != lrc_lines.length -1){
-                 _lrc_buf += lrc_lines[k] + "\r\n" + lrc_lines[k].slice(-10) + "　　" + lrc_lines[k].slice(-10) +"\r\n";
-            //} else {
-            //     _lrc_buf += lrc_lines[k] + "\r\n" + "[" + format_time(_end + 1000) + "]" + "　　" + "[" + format_time(_end + 2000) + "]";
-            //}
+            if (k > lc && k != lrc_lines.length - 1)
+            {
+                if (ToMilliSec(lrc_lines[k + 1].substr(1,8)) < ToMilliSec(lrc_lines[k].substr(lrc_lines[k].length - 9,8)))
+                {
+                    _lrc_buf += lrc_lines[k] + "\r\n" + lrc_lines[k + 1].substr(0,10) + "　　" + lrc_lines[k + 1].substr(0,10) +"\r\n";
+                }
+                else
+                {
+                    _lrc_buf += lrc_lines[k] + "\r\n" + lrc_lines[k].slice(-10) + "　　" + lrc_lines[k].slice(-10) +"\r\n";
+                }
+            }
+            else
+            {
+                _lrc_buf += lrc_lines[k] + "\r\n" + lrc_lines[k].slice(-10) + "　　" + lrc_lines[k].slice(-10) +"\r\n";
+            }
         }
-		lrc_buf = _lrc_buf;
-	}
+        lrc_buf = _lrc_buf;
+    }
+
     return lrc_buf;
+}
+
+function ToMilliSec(timeString){
+    return parseInt(timeString.slice(0, 2)) * 60000 + parseInt(timeString.substr(3, 2)) * 1000 + parseInt(timeString.substr(6, 2));
 }
 
 function zpad(n) {
@@ -213,7 +218,7 @@ function base64decode(str) {
         } while ( i < len && c3 == - 1 );
         if (c3 == -1) break;
 
-        out += String.fromCharCode(((c2 & 0XF) << 4) | ((c3 & 0x3C) >> 2));
+        out += String.fromCharCode(((c2 & 0xF) << 4) | ((c3 & 0x3C) >> 2));
 
         /* c4 */
         do {
