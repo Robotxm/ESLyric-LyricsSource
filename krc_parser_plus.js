@@ -1,12 +1,13 @@
 /**
- * KRC Parser
+ * KRC Parser Plus (Original 'KRC Parser')
  * Original Author: btx258
  * Modified by: Robotxm
- * Version: 0.2.7
+ * Version: 0.2.8
  * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
+ * Github: https://github.com/Robotxm/krc_parser_for_ESLyric
 **/
 
-// Define whether show dual-line desktop lyrics or not when translated lyrics doesn't exsit.
+// Define whether to show dual-line desktop lyrics or not when translated lyrics doesn't exsit.
 // NOTICE: No matter whatever value is set, you must set ESLyric to show dual-line lyric.
 // true: Dual line
 // false: Single line
@@ -15,13 +16,24 @@
 // true: 以双行显示
 // false: 以单行显示 
 var dual_line = false;
+// Define whether to use beta function.
+// NOTICE: It is highly recommended that this value be set to false.
+// true: Enablde beta function
+// false: disable beta function
+// 是否使用测试功能。此功能主要用于使存在翻译时歌词的显示效果与酷狗音乐一致。原理是在每一行歌词原文前添加一个空格。
+// 此空格不会被 ESLyric 显示，因此并不会影响观感。
+// 注意：强烈建议设置为 false。测试功能尽管不会影响观感，但降低了歌词文件本身的可读性。
+// 如果有处理歌词文件的需求，请避免使用测试功能。
+// true: 启用测试功能
+// false: 禁用测试功能
+var beta = false;
 
 function get_my_name() {
     return "KRC Parser Plus";
 }
 
 function get_version() {
-    return "0.2.7";
+    return "0.2.8";
 }
 
 function get_author() {
@@ -128,15 +140,39 @@ function krc2lrc(text) {
 
     // Add translation if exists
     if (btrans) {
-        var lrc_lines = lrc_buf.split("\r\n");
-        for (var k = 0; k < trans.length; k++) {
-            if (k != trans.length - 1) {
-                _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].slice(0,10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].slice(0,10) + "\r\n";
-            } else {
-                _lrc_buf += lrc_lines[k + lc] + "\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
+        if (beta)
+        {
+            var lrc_lines = lrc_buf.split("\r\n");
+            for (var k = 0; k < trans.length; k++)
+            {
+                if (k != trans.length - 1) {
+                    if (k == 0)
+                    {
+                        _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
+                    }
+                    else
+                    {
+                        _lrc_buf += lrc_lines[k + lc - 1].slice(-10) + " "+ lrc_lines[k + lc].slice(0,10) + lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
+                    }
+                } else {
+                    _lrc_buf += lrc_lines[k + lc] + "\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
+                }
             }
+            lrc_buf = lrc_meta + "\r\n" + _lrc_buf;
         }
-        lrc_buf = lrc_meta + "\r\n" + _lrc_buf;
+        else
+        {
+            var lrc_lines = lrc_buf.split("\r\n");
+            for (var k = 0; k < trans.length; k++)
+            {
+                if (k != trans.length - 1) {
+                    _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].slice(0,10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].slice(0,10) + "\r\n";
+                } else {
+                    _lrc_buf += lrc_lines[k + lc] + "\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
+                }
+            }
+            lrc_buf = lrc_meta + "\r\n" + _lrc_buf;
+        }
     }
 
     // Process something about single-line mode
