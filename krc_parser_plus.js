@@ -2,7 +2,7 @@
  * KRC Parser Plus (Original 'KRC Parser')
  * Original Author: btx258
  * Modified by: Robotxm
- * Version: 0.2.8
+ * Version: 0.2.9
  * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
  * Github: https://github.com/Robotxm/krc_parser_for_ESLyric
 **/
@@ -26,14 +26,14 @@ var dual_line = false;
 // 如果有处理歌词文件的需求，请避免使用测试功能。
 // true: 启用测试功能
 // false: 禁用测试功能
-var beta = false;
+var beta = true;
 
 function get_my_name() {
     return "KRC Parser Plus";
 }
 
 function get_version() {
-    return "0.2.8";
+    return "0.2.9";
 }
 
 function get_author() {
@@ -152,7 +152,7 @@ function krc2lrc(text) {
                     }
                     else
                     {
-                        _lrc_buf += lrc_lines[k + lc - 1].slice(-10) + " "+ lrc_lines[k + lc].slice(0,10) + lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
+                        _lrc_buf += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
                     }
                 } else {
                     _lrc_buf += lrc_lines[k + lc] + "\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
