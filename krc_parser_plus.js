@@ -2,7 +2,7 @@
  * KRC Parser Plus (Original 'KRC Parser')
  * Original Author: btx258
  * Modified by: Robotxm
- * Version: 0.3.1
+ * Version: 0.3.2
  * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
  * Github: https://github.com/Robotxm/krc_parser_for_ESLyric
 **/
@@ -39,7 +39,7 @@ function get_my_name() {
 }
 
 function get_version() {
-    return "0.3.1";
+    return "0.3.2";
 }
 
 function get_author() {
@@ -99,9 +99,6 @@ function krc2lrc(text) {
     if (text.indexOf("language") != -1 && text.indexOf("eyJjb250ZW50IjpbXSwidmVyc2lvbiI6MX0=") == -1) {
         var regx_lrc = text.match(/language:(.*)/g);
         regx_lrc[0] = regx_lrc[0].substring(0, regx_lrc[0].length - 1);
-        var regx_total = text.match(/\[total:(\d*)\]/);
-        total = format_time(regx_total[1]);
-        fb.trace(regx_total[2]);
         var lrc = unescape(base64decode(regx_lrc[0].replace("language:", "")).replace(/\\u/g, '%u'));
         var jkrc = eval('(' + lrc + ')');
         for (var j = 0; j < jkrc.content.length; j++) {
@@ -183,11 +180,11 @@ function krc2lrc(text) {
                 {
                     if (ToMilliSec(lrc_lines[k + lc - 1].substr(lrc_lines[k + lc].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc].substr(1, 8)))
                     {
-                        _lrc_buf += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + " [" + total + "]\r\n" + "[" + total + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + total + "]" + "\r\n" + "[" + total + "]　\r\n";
+                        _lrc_buf += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + " [" + format_time(_end + 1000) + "]\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
                     }
                     else
                     {
-                        _lrc_buf += lrc_lines[k + lc] + " [" + total + "]\r\n" + "[" + total + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + total + "]" + "\r\n" + "[" + total + "]　\r\n";
+                        _lrc_buf += lrc_lines[k + lc] + " [" + format_time(_end + 1000) + "]\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
                     }
                 }
             }
@@ -212,7 +209,7 @@ function krc2lrc(text) {
     if(!dual_line && !btrans){
         var lrc_lines = lrc_buf.split("\r\n");
         for (var k = lc; k < lrc_lines.length; k++) {
-            if (k > lc && k != lrc_lines.length - 1)
+            if (k != lrc_lines.length - 1)
             {
                 if (ToMilliSec(lrc_lines[k + 1].substr(1, 8)) < ToMilliSec(lrc_lines[k].substr(lrc_lines[k].length - 9, 8)))
                 {
