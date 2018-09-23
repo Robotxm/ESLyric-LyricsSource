@@ -2,30 +2,36 @@
  * KRC Parser Plus (Original 'KRC Parser')
  * Original Author: btx258
  * Modified by: Robotxm
- * Version: 0.2.9
+ * Version: 0.3.1
  * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
  * Github: https://github.com/Robotxm/krc_parser_for_ESLyric
 **/
 
-// Define whether to show dual-line desktop lyrics or not when translated lyrics doesn't exsit.
-// NOTICE: No matter whatever value is set, you must set ESLyric to show dual-line lyric.
-// true: Dual line
-// false: Single line
-// 当没有翻译歌词存在时，是否以双行样式显示桌面歌词。
-// 注意：无论此处设置为何值，都必须在 ESLyric 中设置桌面歌词的“显示模式”为“双行显示”。
-// true: 以双行显示
-// false: 以单行显示 
+
+/** 
+ * Define whether to show dual-line desktop lyrics or not when translated lyrics doesn't exsit.
+ * NOTICE: No matter what value is set, you must set ESLyric to show dual-line lyric.
+ * true: Dual line
+ * false: Single line
+ * 当没有翻译歌词存在时，是否以双行样式显示桌面歌词。
+ * 注意：无论此处设置为何值，都必须在 ESLyric 中设置桌面歌词的“显示模式”为“双行显示”。
+ * true: 以双行显示
+ * false: 以单行显示 
+**/
 var dual_line = false;
-// Define whether to use beta function.
-// NOTICE: It is highly recommended that this value be set to false.
-// true: Enablde beta function
-// false: disable beta function
-// 是否使用测试功能。此功能主要用于使存在翻译时歌词的显示效果与酷狗音乐一致。原理是在每一行歌词原文前添加一个空格。
-// 此空格不会被 ESLyric 显示，因此并不会影响观感。
-// 注意：强烈建议设置为 false。测试功能尽管不会影响观感，但降低了歌词文件本身的可读性。
-// 如果有处理歌词文件的需求，请避免使用测试功能。
-// true: 启用测试功能
-// false: 禁用测试功能
+
+/** 
+ * Define whether to use beta function.
+ * NOTICE: It is highly recommended that this value be set to false.
+ * true: Enablde beta function
+ * false: disable beta function
+ * 是否使用测试功能。此功能主要用于使存在翻译时歌词的显示效果与酷狗音乐一致。原理是在每一行歌词原文前添加一个空格。
+ * 此空格不会被 ESLyric 显示，因此并不会影响观感。
+ * 注意：强烈建议设置为 false。测试功能尽管不会影响观感，但降低了歌词文件本身的可读性。
+ * 如果有处理歌词文件的需求，请避免使用测试功能。
+ * true: 启用测试功能
+ * false: 禁用测试功能
+**/
 var beta = true;
 
 function get_my_name() {
@@ -33,11 +39,11 @@ function get_my_name() {
 }
 
 function get_version() {
-    return "0.2.9";
+    return "0.3.1";
 }
 
 function get_author() {
-    return "wistaria & Robotxm";
+    return "Robotxm & wistaria";
 }
 
 function is_our_type(type) {
@@ -82,21 +88,25 @@ function krc2lrc(text) {
     var lrc_meta_info = ["ar", "ti", "al", "by", "offset"];
     var meta_info_unlock = true;
     var line, arr;
+    var total;
     var _end = 0;
 
-    // Get translated lyrics
+    // Get translation
     var jkrc, trans;
     var _lrc_buf = "";
     var lc = 0;
     var btrans = false;
     if (text.indexOf("language") != -1 && text.indexOf("eyJjb250ZW50IjpbXSwidmVyc2lvbiI6MX0=") == -1) {
-        btrans = true;
         var regx_lrc = text.match(/language:(.*)/g);
         regx_lrc[0] = regx_lrc[0].substring(0, regx_lrc[0].length - 1);
+        var regx_total = text.match(/\[total:(\d*)\]/);
+        total = format_time(regx_total[1]);
+        fb.trace(regx_total[2]);
         var lrc = unescape(base64decode(regx_lrc[0].replace("language:", "")).replace(/\\u/g, '%u'));
         var jkrc = eval('(' + lrc + ')');
         for (var j = 0; j < jkrc.content.length; j++) {
             if (jkrc.content[j].type == 1) {
+                btrans = true;
                 var trans = jkrc.content[j].lyricContent;
             }
         }
@@ -148,14 +158,37 @@ function krc2lrc(text) {
                 if (k != trans.length - 1) {
                     if (k == 0)
                     {
-                        _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
+                        if (ToMilliSec(lrc_lines[k + lc].substr(lrc_lines[k + lc].length - 9, 8)) > ToMilliSec(lrc_lines[k + lc + 1].substr(1, 8)))
+                        {
+                            _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].substr(0, 10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].substr(0, 10) + "\r\n";
+                        }
+                        else
+                        {
+                            _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
+                        }
                     }
                     else
                     {
-                        _lrc_buf += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
+                        if (ToMilliSec(lrc_lines[k + lc - 1].substr(lrc_lines[k + lc - 1].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc].substr(1, 8)))
+                        {
+                            _lrc_buf += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
+                        }
+                        else
+                        {
+                            _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].substr(0, 10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].substr(0, 10) + "\r\n";
+                        }
                     }
-                } else {
-                    _lrc_buf += lrc_lines[k + lc] + "\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
+                }
+                else
+                {
+                    if (ToMilliSec(lrc_lines[k + lc - 1].substr(lrc_lines[k + lc].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc].substr(1, 8)))
+                    {
+                        _lrc_buf += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + " [" + total + "]\r\n" + "[" + total + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + total + "]" + "\r\n" + "[" + total + "]　\r\n";
+                    }
+                    else
+                    {
+                        _lrc_buf += lrc_lines[k + lc] + " [" + total + "]\r\n" + "[" + total + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + total + "]" + "\r\n" + "[" + total + "]　\r\n";
+                    }
                 }
             }
             lrc_buf = lrc_meta + "\r\n" + _lrc_buf;
@@ -181,9 +214,9 @@ function krc2lrc(text) {
         for (var k = lc; k < lrc_lines.length; k++) {
             if (k > lc && k != lrc_lines.length - 1)
             {
-                if (ToMilliSec(lrc_lines[k + 1].substr(1,8)) < ToMilliSec(lrc_lines[k].substr(lrc_lines[k].length - 9,8)))
+                if (ToMilliSec(lrc_lines[k + 1].substr(1, 8)) < ToMilliSec(lrc_lines[k].substr(lrc_lines[k].length - 9, 8)))
                 {
-                    _lrc_buf += lrc_lines[k] + "\r\n" + lrc_lines[k + 1].substr(0,10) + "　　" + lrc_lines[k + 1].substr(0,10) +"\r\n";
+                    _lrc_buf += lrc_lines[k] + "\r\n" + lrc_lines[k + 1].substr(0,10) + "　　" + lrc_lines[k + 1].substr(0, 10) +"\r\n";
                 }
                 else
                 {
