@@ -2,7 +2,7 @@
  * KRC Parser Plus (Original 'KRC Parser')
  * Original Author: btx258
  * Modified by: Robotxm
- * Version: 0.3.2
+ * Version: 0.3.3
  * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
  * Github: https://github.com/Robotxm/krc_parser_for_ESLyric
 **/
@@ -39,7 +39,7 @@ function get_my_name() {
 }
 
 function get_version() {
-    return "0.3.2";
+    return "0.3.3";
 }
 
 function get_author() {
@@ -155,24 +155,40 @@ function krc2lrc(text) {
                 if (k != trans.length - 1) {
                     if (k == 0)
                     {
-                        if (ToMilliSec(lrc_lines[k + lc].substr(lrc_lines[k + lc].length - 9, 8)) > ToMilliSec(lrc_lines[k + lc + 1].substr(1, 8)))
+                        if (ToMilliSec(lrc_lines[k + lc].substr(lrc_lines[k + lc].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc + 1].substr(1, 8)))
                         {
-                            _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].substr(0, 10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].substr(0, 10) + "\r\n";
+                            _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
                         }
                         else
                         {
-                            _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
+                            _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].substr(0, 10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].substr(0, 10) + "\r\n";
+
                         }
                     }
                     else
                     {
                         if (ToMilliSec(lrc_lines[k + lc - 1].substr(lrc_lines[k + lc - 1].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc].substr(1, 8)))
                         {
-                            _lrc_buf += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
+                            if (ToMilliSec(lrc_lines[k + lc].substr(lrc_lines[k + lc].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc + 1].substr(1, 8)))
+                            {
+                                _lrc_buf += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
+                            }
+                            else
+                            {
+                                _lrc_buf += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].substr(0, 10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].substr(0, 10) + "\r\n";
+                            }
                         }
                         else
                         {
-                            _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].substr(0, 10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].substr(0, 10) + "\r\n";
+                            if (ToMilliSec(lrc_lines[k + lc].substr(lrc_lines[k + lc].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc + 1].substr(1, 8)))
+                            {
+                                _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
+                            }
+                            else
+                            {
+                                _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].substr(0, 10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].substr(0, 10) + "\r\n";
+                            }
+                            
                         }
                     }
                 }
