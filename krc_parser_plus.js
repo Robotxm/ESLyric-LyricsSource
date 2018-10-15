@@ -32,7 +32,7 @@ var dual_line = false;
  * true: 启用测试功能
  * false: 禁用测试功能
 **/
-var beta = true;
+var beta = false;
 
 function get_my_name()
 {
