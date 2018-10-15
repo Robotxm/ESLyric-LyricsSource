@@ -2,7 +2,7 @@
  * KRC Parser Plus (Original 'KRC Parser')
  * Original Author: btx258
  * Modified by: Robotxm
- * Version: 0.3.3
+ * Version: 0.3.4
  * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
  * Github: https://github.com/Robotxm/krc_parser_for_ESLyric
 **/
@@ -34,23 +34,28 @@ var dual_line = false;
 **/
 var beta = true;
 
-function get_my_name() {
+function get_my_name()
+{
     return "KRC Parser Plus";
 }
 
-function get_version() {
-    return "0.3.3";
+function get_version()
+{
+    return "0.3.4";
 }
 
-function get_author() {
+function get_author()
+{
     return "Robotxm & wistaria";
 }
 
-function is_our_type(type) {
+function is_our_type(type)
+{
     return type.toLowerCase() == "krc";
 }
 
-function start_parse(data) {
+function start_parse(data)
+{
     var zip_data = null;
     var krc_text = null;
     zip_data = krchex_xor(data);
@@ -61,17 +66,20 @@ function start_parse(data) {
     return krc2lrc(krc_text);
 }
 
-function krchex_xor(s) {
+function krchex_xor(s)
+{
     var magic_bytes = [0x6b, 0x72, 0x63, 0x31]; // 'k' , 'r' , 'c' ,'1'
     if (s.length < magic_bytes.length) return;
-    for (var i = 0; i < magic_bytes.length; ++i) {
+    for (var i = 0; i < magic_bytes.length; ++i)
+    {
         var c = s.charCodeAt(i);
         if (c != magic_bytes[i]) return;
     }
     var enc_key = [0x40, 0x47, 0x61, 0x77, 0x5e, 0x32, 0x74, 0x47, 0x51, 0x36, 0x31, 0x2d, 0xce, 0xd2, 0x6e, 0x69];
     var buf = "";
     var krc_header = magic_bytes.length; // First 4 bytes
-    for (var i = krc_header; i < s.length; ++i) {
+    for (var i = krc_header; i < s.length; ++i)
+    {
         var x1 = s.charCodeAt(i);;
         var x2 = enc_key[(i - krc_header) % 16];
         buf += String.fromCharCode(x1 ^ x2);
@@ -79,7 +87,8 @@ function krchex_xor(s) {
     return buf;
 }
 
-function krc2lrc(text) {
+function krc2lrc(text)
+{
 
     var lrc_buf = "";
     var regx_meta_info = /^\[([^\d:][^:]*):([^:]*)\]\s*$/;
@@ -96,13 +105,16 @@ function krc2lrc(text) {
     var _lrc_buf = "";
     var lc = 0;
     var btrans = false;
-    if (text.indexOf("language") != -1 && text.indexOf("eyJjb250ZW50IjpbXSwidmVyc2lvbiI6MX0=") == -1) {
+    if (text.indexOf("language") != -1 && text.indexOf("eyJjb250ZW50IjpbXSwidmVyc2lvbiI6MX0=") == -1)
+    {
         var regx_lrc = text.match(/language:(.*)/g);
         regx_lrc[0] = regx_lrc[0].substring(0, regx_lrc[0].length - 1);
         var lrc = unescape(base64decode(regx_lrc[0].replace("language:", "")).replace(/\\u/g, '%u'));
         var jkrc = eval('(' + lrc + ')');
-        for (var j = 0; j < jkrc.content.length; j++) {
-            if (jkrc.content[j].type == 1) {
+        for (var j = 0; j < jkrc.content.length; j++)
+        {
+            if (jkrc.content[j].type == 1)
+            {
                 btrans = true;
                 var trans = jkrc.content[j].lyricContent;
             }
@@ -111,12 +123,16 @@ function krc2lrc(text) {
     var lines = text.split(/[\n\r]/);
 
     // Start conversion
-    for (var i = 0; i < lines.length; ++i) {
+    for (var i = 0; i < lines.length; ++i)
+    {
         line = lines[i];
         // Copy known meta tag back
-        if (meta_info_unlock && (arr = regx_meta_info.exec(line))) {
-            for (var idx in lrc_meta_info) {
-                if (lrc_meta_info[idx] == arr[1]) {
+        if (meta_info_unlock && (arr = regx_meta_info.exec(line)))
+        {
+            for (var idx in lrc_meta_info)
+            {
+                if (lrc_meta_info[idx] == arr[1])
+                {
                     lrc_buf = lrc_buf + arr[0] + "\r\n";
                     lc++;
                     break;
@@ -131,7 +147,8 @@ function krc2lrc(text) {
             var _time_array = arr[1].split(',');
             var _start = parseInt(_time_array[0]);
             var _duaration = parseInt(_time_array[1]);
-            while ((arr = regx_timestamps2.exec(line))) {
+            while ((arr = regx_timestamps2.exec(line)))
+            {
                 var _sub_time = arr[1].split(',');
                 var _sub_start = parseInt(_sub_time[0]);
                 var _sub_duaration = parseInt(_sub_time[1]);
@@ -146,13 +163,15 @@ function krc2lrc(text) {
     }
 
     // Add translation if exists
-    if (btrans) {
+    if (btrans)
+    {
         if (beta)
         {
             var lrc_lines = lrc_buf.split("\r\n");
             for (var k = 0; k < trans.length; k++)
             {
-                if (k != trans.length - 1) {
+                if (k != trans.length - 1)
+                {
                     if (k == 0)
                     {
                         if (ToMilliSec(lrc_lines[k + lc].substr(lrc_lines[k + lc].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc + 1].substr(1, 8)))
@@ -194,13 +213,13 @@ function krc2lrc(text) {
                 }
                 else
                 {
-                    if (ToMilliSec(lrc_lines[k + lc - 1].substr(lrc_lines[k + lc].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc].substr(1, 8)))
+                    if (ToMilliSec(lrc_lines[k + lc - 1].substr(lrc_lines[k + lc - 1].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc].substr(1, 8)))
                     {
-                        _lrc_buf += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + " [" + format_time(_end + 1000) + "]\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
+                        _lrc_buf += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + "\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
                     }
                     else
                     {
-                        _lrc_buf += lrc_lines[k + lc] + " [" + format_time(_end + 1000) + "]\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
+                        _lrc_buf += lrc_lines[k + lc] + "\r\n[" + format_time(_end + 1001) + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
                     }
                 }
             }
@@ -211,7 +230,8 @@ function krc2lrc(text) {
             var lrc_lines = lrc_buf.split("\r\n");
             for (var k = 0; k < trans.length; k++)
             {
-                if (k != trans.length - 1) {
+                if (k != trans.length - 1)
+                {
                     _lrc_buf += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].slice(0,10) + (trans[k]=="" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].slice(0,10) + "\r\n";
                 } else {
                     _lrc_buf += lrc_lines[k + lc] + "\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k]=="" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
@@ -224,7 +244,8 @@ function krc2lrc(text) {
     // Process something about single-line mode
     if(!dual_line && !btrans){
         var lrc_lines = lrc_buf.split("\r\n");
-        for (var k = lc; k < lrc_lines.length; k++) {
+        for (var k = lc; k < lrc_lines.length; k++)
+        {
             if (k != lrc_lines.length - 1)
             {
                 if (ToMilliSec(lrc_lines[k + 1].substr(1, 8)) < ToMilliSec(lrc_lines[k].substr(lrc_lines[k].length - 9, 8)))
@@ -247,16 +268,19 @@ function krc2lrc(text) {
     return lrc_buf;
 }
 
-function ToMilliSec(timeString){
+function ToMilliSec(timeString)
+{
     return parseInt(timeString.slice(0, 2)) * 60000 + parseInt(timeString.substr(3, 2)) * 1000 + parseInt(timeString.substr(6, 2));
 }
 
-function zpad(n) {
+function zpad(n)
+{
     var s = n.toString();
     return (s.length < 2) ? "0" + s: s;
 }
 
-function format_time(time) {
+function format_time(time)
+{
     var t = Math.abs(time / 1000);
     var h = Math.floor(t / 3600);
     t -= h * 3600;
@@ -270,16 +294,18 @@ function format_time(time) {
 
 var base64DecodeChars = new Array( - 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1);
 
-function base64decode(str) {
+function base64decode(str)
+{
     var c1, c2, c3, c4;
     var i, len, out;
 
     len = str.length;
     i = 0;
     out = "";
-    while (i < len) {
+    while (i < len)
+    {
         /* c1 */
-        do {
+        do{
             c1 = base64DecodeChars[str.charCodeAt(i++) & 0xff];
         } while ( i < len && c1 == - 1 );
         if (c1 == -1) break;
