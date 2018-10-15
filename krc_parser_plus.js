@@ -2,7 +2,7 @@
  * KRC Parser Plus (Original 'KRC Parser')
  * Original Author: btx258
  * Modified by: Robotxm
- * Version: 0.3.4
+ * Version: 0.3.5
  * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
  * Github: https://github.com/Robotxm/krc_parser_for_ESLyric
 **/
@@ -24,7 +24,7 @@ var dual_line = false;
  * Define whether to use beta function.
  * NOTICE: It is highly recommended that this value be set to false.
  * true: Enablde beta function
- * false: disable beta function
+ * false: Disable beta function
  * 是否使用测试功能。此功能主要用于使存在翻译时歌词的显示效果与酷狗音乐一致。原理是在每一行歌词原文前添加一个空格。
  * 此空格不会被 ESLyric 显示，因此并不会影响观感。
  * 注意：强烈建议设置为 false。测试功能尽管不会影响观感，但降低了歌词文件本身的可读性。
@@ -34,6 +34,20 @@ var dual_line = false;
 **/
 var beta = false;
 
+/**
+ * Define whether to use alpha function.
+ * NOTICE: It is highly recommended that this value be set to false.
+ * true: Enable alpha function
+ * false: Disable alpha function
+ * 是否使用 Alpha 测试功能。此功能主要是使得 ESLyric 成为真正的“逐字”模式。原理和酷狗一样，使用“开始”和“结束”
+ * 两个时间标签控制一个字符。
+ * 注意：强烈建议设置为 false。在某些情况下，ESLyric 可能无法识别两个连续的时间标签，而导致直接显示不经解析的
+ * 含有时间标签的歌词。
+ * true: 启用 Alpha 测试功能
+ * false: 禁用 Alpha 测试功能
+ */
+var alpha = false;
+
 function get_my_name()
 {
     return "KRC Parser Plus";
@@ -41,7 +55,7 @@ function get_my_name()
 
 function get_version()
 {
-    return "0.3.4";
+    return "0.3.5";
 }
 
 function get_author()
@@ -153,10 +167,10 @@ function krc2lrc(text)
                 var _sub_start = parseInt(_sub_time[0]);
                 var _sub_duaration = parseInt(_sub_time[1]);
                 var cnt = arr[2];
-                buf = buf + "[" + format_time(_start + _sub_start) + "]" + cnt;
+                buf = buf + "[" + format_time(_start + _sub_start) + "]" + cnt + (alpha ? ("[" + format_time(_start + _sub_start + _sub_duaration) + "]") : "");
                 _duaration = parseInt(_sub_start + _sub_duaration);
             }
-            buf = buf + "[" + format_time(_start + _duaration) + "]";
+            if (!alpha) buf = buf + "[" + format_time(_start + _duaration) + "]";
             _end = _start + _duaration;
             lrc_buf += buf + "\r\n";
         }
