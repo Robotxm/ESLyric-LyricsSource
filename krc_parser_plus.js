@@ -27,12 +27,11 @@ var dual_line = false;
  * false: Disable beta function
  * 是否使用测试功能。此功能主要用于使存在翻译时歌词的显示效果与酷狗音乐一致。原理是在每一行歌词原文前添加一个空格。
  * 此空格不会被 ESLyric 显示，因此并不会影响观感。
- * 注意：强烈建议设置为 false。测试功能尽管不会影响观感，但降低了歌词文件本身的可读性。
  * 如果有处理歌词文件的需求，请避免使用测试功能。
  * true: 启用测试功能
  * false: 禁用测试功能
 **/
-var beta = false;
+var beta = true;
 
 /**
  * Define whether to use alpha function.
@@ -41,12 +40,10 @@ var beta = false;
  * false: Disable alpha function
  * 是否使用 Alpha 测试功能。此功能主要是使得 ESLyric 成为真正的“逐字”模式。原理和酷狗一样，使用“开始”和“结束”
  * 两个时间标签控制一个字符。
- * 注意：强烈建议设置为 false。在某些情况下，ESLyric 可能无法识别两个连续的时间标签，而导致直接显示不经解析的
- * 含有时间标签的歌词。
  * true: 启用 Alpha 测试功能
  * false: 禁用 Alpha 测试功能
  */
-var alpha = false;
+var alpha = true;
 
 function get_my_name()
 {
