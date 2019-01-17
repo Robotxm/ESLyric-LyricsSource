@@ -40,6 +40,7 @@ var beta = true;
  * false: Disable alpha function
  * 是否使用 Alpha 测试功能。此功能主要是使得 ESLyric 成为真正的“逐字”模式。原理和酷狗一样，使用“开始”和“结束”
  * 两个时间标签控制一个字符。
+ * 注意：如果启用后出现歌词显示错误，请关闭并提交 issue。
  * true: 启用 Alpha 测试功能
  * false: 禁用 Alpha 测试功能
  */
