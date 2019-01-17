@@ -15,8 +15,6 @@ An advanced krc parser for ESLyric. Originally created by btx258. Modified by Ro
 
 修改变量 beta 值为 true。
 
-**再次提示：如果不在意这个问题，或者追求歌词文件的可读性，强烈建议不使用 Beta。**
-
 ## 关于 Alpha (About Alpha)
 
 ### 为什么会有 Alpha
@@ -31,4 +29,4 @@ An advanced krc parser for ESLyric. Originally created by btx258. Modified by Ro
 
 修改变量 alpha 值为 true。
 
-**再次提示：如果不在意这个问题，强烈建议不使用 Alpha。**
+**注意：如果启用后出现歌词显示错误，请关闭并提交 issue。**
