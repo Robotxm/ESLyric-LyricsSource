@@ -3,7 +3,9 @@
  * Original Author: btx258
  * Modified by: Robotxm
  * Version: 0.3.7
- * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
+ * License: GPL 3.0
+ * Description: Make foobar2000 with ESLyric able to parse
+ *              KRC and translated lyrics if they exist.
  * Github: https://github.com/Robotxm/ESLyric-LyricsSource
 **/
 
