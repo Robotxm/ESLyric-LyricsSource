@@ -4,7 +4,7 @@
  * Modified by: Robotxm
  * Version: 0.3.7
  * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if they exist.
- * Github: https://github.com/Robotxm/krc_parser_for_ESLyric
+ * Github: https://github.com/Robotxm/ESLyric-LyricsSource
 **/
 
 
