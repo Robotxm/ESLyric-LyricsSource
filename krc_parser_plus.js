@@ -24,7 +24,6 @@ var dual_line = false;
 
 /** 
  * Define whether to use beta function.
- * NOTICE: It is highly recommended that this value be set to false.
  * true: Enablde beta function
  * false: Disable beta function
  * 是否使用测试功能。此功能主要用于使存在翻译时歌词的显示效果与酷狗音乐一致。原理是在每一行歌词原文前添加一个空格。
@@ -37,7 +36,7 @@ var beta = true;
 
 /**
  * Define whether to use alpha function.
- * NOTICE: It is highly recommended that this value be set to false.
+ * NOTICE: If lyrics shows incorrectly, set to false and open an issue.
  * true: Enable alpha function
  * false: Disable alpha function
  * 是否使用 Alpha 测试功能。此功能主要是使得 ESLyric 成为真正的“逐字”模式。原理和酷狗一样，使用“开始”和“结束”
