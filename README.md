@@ -1,32 +1,50 @@
-# KRC Parser Plus
+# ESLyric-LyricsSource
+## KRC Parser Plus
 An advanced krc parser for ESLyric. Originally created by btx258. Modified by Robotxm.
 
-改进 foobox (Foobar 2000 整合版) 中的 KRC_Parser 使其支持显示酷狗翻译歌词。
+Add translation to lyrics when it exists.
 
-## 关于 Beta (About Beta)
+## Configuration
+### dual_line
+Define whether to show dual-line desktop lyrics or not when translated lyrics doesn't exsit.
 
-### 为什么会有 Beta
+***NOTICE: No matter what value is set, you must set ESLyric to show dual-line lyric.***
 
-在酷狗音乐中，如果当前播放时间没有到达下一个时间轴，会停在下一个时间轴对应的歌词处但并不滚动（这里描述的可能不太清楚，具体可以去在酷狗里找一些间奏比较长的音乐自行体验）。而 ESLyric 默认的处理方式则是停在当前播放时间对应的时间轴的歌词处。
+`true`: Dual line
 
-为了尽量与酷狗音乐的显示效果一致，对于没有翻译的歌词，已经做了修正处理（这个修改在之前的版本已经提交到，不会造成歌词文件失去可读性）。但对于有翻译的歌词，目前测试版的处理方法是，在每句歌词前添加一个空格，实际测试时发现歌词开头的空格并不会被显示，这样在不影响 ESLyric 桌面歌词和面板歌词观感的情况下达到了和酷狗一致。
+`false`: Single line
 
-### 如何使用 Beta
+Default value: `true`
 
-修改变量 beta 值为 true。
+### beta
+Define whether to use beta function. It makes lyrics showing on desktop look more like KGMusic.
 
-## 关于 Alpha (About Alpha)
+`true`: Enablde beta function
 
-### 为什么会有 Alpha
+`false`: Disable beta function
 
-原生 KRC 使用“开始”和“结束”两个时间标签控制一个字符。基于此，酷狗音乐支持“暂停”功能。而基于目前所有的资料，ESLyric 仅使用一个“开始”时间标签来控制一个字符，这也就意味着当前字符的结束时间是下个字符的开始时间。原 KRC Parser 的转换 KRC 方法没有考虑这个问题，所以转换后的 LRC 会丢失暂停特性。
+Default value: `true`
 
-为了尽量与酷狗音乐的显示效果一致，Alpha 功能采用和原生 KRC 一样的处理方式，为字符添加结束时间标签。这个仅仅会影响歌词部分，不会影响 Beta 功能中添加的空格。
+### alpha
+Define whether to use alpha function. If it is set to `true`, script will use two time tag for one word. This makes lyrics more accurate and support "pause" just like in KGMusic.
 
-然而，在测试时，发现当启用 Alpha 功能后，有极少数特殊情况会导致 ESLyric 无法解析歌词，从而直接显示未经解析的含有时间标签的歌词。
+`true`: Enable alpha function
 
-### 如何使用 Alpha
+`false`: Disable alpha function
 
-修改变量 alpha 值为 true。
+## QQMusic Plus
+An advanced lyrics source for ESLyric. Originally created by btx258. Modified by Robotxm.
 
-**注意：如果启用后出现歌词显示错误，请关闭并提交 issue。**
+Add translation to lyrics when exists.
+
+## Configuration
+### dual_line
+Define whether to show dual-line desktop lyrics or not when translated lyrics doesn't exsit.
+
+***NOTICE: No matter what value is set, you must set ESLyric to show dual-line lyric.***
+
+`true`: Dual line
+
+`false`: Single line
+
+Default value: `true`
