@@ -272,23 +272,42 @@ function qm_generate_translation(plain, translation) {
     var arr_translation = translation.split("\n");
     var translated_lyrics = "";
     for (var i = translation.indexOf("kana") == -1 ? 5 : 6; i < arr_plain.length; i++) {
-        translated_lyrics += arr_plain[i] + "\r\n";
+        translated_lyrics += trim(arr_plain[i]) + "\r\n";
         var timestamp = "";
         if (i < arr_plain.length - 1) {
-            timestamp = arr_translation[i + 1].substr(0, 10);
+            timestamp = "[" + format_time(to_millisecond(arr_plain[i + 1].substr(1, 8))) + "]";
         }
         else {
             timestamp = "[" + format_time(to_millisecond(arr_translation[i].substr(1, 8)) + 1000) + "]";
         }
-        if (arr_translation[i] == "腾讯享有本翻译作品的著作权" || arr_translation[i].indexOf("//") != -1) {
+        
+        if (arr_translation[i].substring(10) == "" && arr_plain[i].substring(10) != "") {
+        	arr_translation.splice(i, 1);
+        }
 
-            translated_lyrics += timestamp + arr_translation[i].substring(10).replace("//", "　　") + "\r\n";
+        var translation_line = "";
+        if (arr_translation[i] == "腾讯享有本翻译作品的著作权" || arr_translation[i].indexOf("//") != -1) {
+            translation_line = arr_translation[i].substring(10).replace("//", "　　");
         } else {
-            translated_lyrics += timestamp + arr_translation[i].substring(10) + "\r\n";
+            translation_line = arr_translation[i].substring(10);
+        }
+
+        translation_line = trim(translation_line);
+        if (translation_line == "" || translation_line == "　　" || translation_line == "腾讯享有本翻译作品的著作权") {
+            translated_lyrics += timestamp + translation_line + "\r\n";
+        } else {
+            translated_lyrics += timestamp + "「" + translation_line + "」" + "\r\n";
         }
     }
 
     return translated_lyrics;
+}
+
+function trim(str) {
+	resultStr = str;
+	resultStr = resultStr.replace(/^(\s|\xA0)+|(\s|\xA0)+$/g, '');
+	resultStr = resultStr.replace(/&apos;/g, '\'');
+    return resultStr;
 }
 
 function qm_generate_single_line(plain) {
@@ -310,16 +329,22 @@ function qm_generate_single_line(plain) {
 }
 
 function to_millisecond(timeString) {
-    return parseInt(timeString.slice(0, 2), 10) * 60000 + parseInt(timeString.substr(3, 2), 10) * 1000 + parseInt(timeString.substr(6, 2), 10);
+    return parseInt(timeString.slice(0, 2), 10) * 60000 + parseInt(timeString.substr(3, 2), 10) * 1000 + parseInt(timeString.substr(6, 2), 10) * 10;
 }
 
 function zpad(n) {
     var s = n.toString();
-    return (s.length < 2) ? "0" + s : s;
+    if (s.length < 2) {
+        return "0" + s;
+    } else if (s.length > 2) {
+        return s.substr(0, 2);
+    } else {
+        return s;
+    }
 }
 
 function format_time(time) {
-    var t = Math.abs(time / 1000);
+    var t = Math.abs((time - 20) / 1000);
     var h = Math.floor(t / 3600);
     t -= h * 3600;
     var m = Math.floor(t / 60);
