@@ -20,7 +20,7 @@
  * true: 以双行显示
  * false: 以单行显示 
 **/
-var dual_line = false;
+var dual_line = true;
 
 var QM_CFG = {
     DEBUG: false,
@@ -307,7 +307,8 @@ function trim(str) {
 	resultStr = str;
 	resultStr = resultStr.replace(/^(\s|\xA0)+|(\s|\xA0)+$/g, '');
 	resultStr = resultStr.replace(/&apos;/g, '\'');
-    return resultStr;
+	resultStr = resultStr.replace(/&amp;/g, '&');
+  	return resultStr;
 }
 
 function qm_generate_single_line(plain) {
@@ -346,9 +347,9 @@ function zpad(n) {
 function format_time(time) {
     var t = Math.abs((time - 20) / 1000);
     var h = Math.floor(t / 3600);
-    t -= h * 3600;
+    t = t - h * 3600;
     var m = Math.floor(t / 60);
-    t -= m * 60;
+    t = t - m * 60;
     var s = Math.floor(t);
     var ms = t - s;
     var str = (h ? zpad(h) + ":" : "") + zpad(m) + ":" + zpad(s) + "." + zpad(Math.floor(ms * 100));
