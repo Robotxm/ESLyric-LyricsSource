@@ -20,7 +20,7 @@
  * true: 以双行显示
  * false: 以单行显示 
 **/
-var dual_line = true;
+var dual_line = false;
 
 var QM_CFG = {
     DEBUG: false,
@@ -318,7 +318,7 @@ function qm_generate_single_line(plain) {
         single_line_lyrics += arr_plain[i] + "\r\n";
         var timestamp = "";
         if (i < arr_plain.length - 1) {
-            timestamp = arr_plain[i + 1].substr(0, 10);
+            timestamp = "[" + format_time(to_millisecond(arr_plain[i + 1].substr(1, 8))) + "]";
         }
         else {
             timestamp = "[" + format_time(to_millisecond(arr_plain[i].substr(1, 8)) + 1000) + "]";
