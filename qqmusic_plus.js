@@ -2,7 +2,7 @@
  * QQ Music Lyrics Source for ESLyric
  * Original Author: btx258
  * Modified by: Robotxm
- * Version: 0.1.1
+ * Version: 0.1.2
  * License: GPL 3.0
  * Description: Make foobar2000 with ESLyric able to show
  *              lyrics (and translation if it exists)
@@ -20,7 +20,7 @@
  * true: 以双行显示
  * false: 以单行显示 
 **/
-var dual_line = false;
+var dual_line = true;
 
 var QM_CFG = {
     DEBUG: false,
@@ -50,11 +50,11 @@ function get_my_name() {
 }
 
 function get_version() {
-    return "0.1.1";
+    return "0.1.2";
 }
 
 function get_author() {
-    return "Robotxm & btx258";
+    return "Robotxm & btx258 & hheng101";
 }
 
 function start_search(info, callback) {
@@ -267,22 +267,86 @@ function qm_trace(str) {
     }
 }
 
+
 function qm_generate_translation(plain, translation) {
+	// qm_trace(plain);
+	// qm_trace("############################################");
+	// qm_trace(translation);
+
     var arr_plain = plain.split("\n");
     var arr_translation = translation.split("\n");
+
+    // 歌词和翻译顶部信息不一定都有，会导致翻译对不齐，所以删掉
+    var plain_start_line = 0;
+    var trans_start_line = 0;
+    for (var i = 0; i < 6; i++) {
+    	if (arr_plain[i].indexOf("[ti:") >= 0 || arr_plain[i].indexOf("[ar:") >= 0 || arr_plain[i].indexOf("[al:") >= 0 || arr_plain[i].indexOf("[by:") >= 0 || arr_plain[i].indexOf("[offset:") >= 0 || arr_plain[i].indexOf("[kana:") >= 0) {
+    		plain_start_line ++;
+    	}
+    	if (arr_translation[i].indexOf("[ti:") >= 0 || arr_translation[i].indexOf("[ar:") >= 0 || arr_translation[i].indexOf("[al:") >= 0 || arr_translation[i].indexOf("[by:") >= 0 || arr_translation[i].indexOf("[offset:") >= 0 || arr_translation[i].indexOf("[kana:") >= 0) {
+    		trans_start_line ++;
+    	}
+    }
+    arr_plain.splice(0, plain_start_line);
+    arr_translation.splice(0, trans_start_line);
+
+    // 有的歌词和翻译对不齐，处理一下
+    if (arr_plain.length != arr_translation.length) {
+    	for (var i = 0; i < arr_plain.length; i++) {
+    		if (arr_plain[i] == null || trim(arr_plain[i]) == "") {
+    			arr_plain.splice(i, 1);
+    			i = i - 1;
+    		}
+    		if (arr_translation[i] != null) {
+    			if (trim(arr_plain[i].substring(10)) == "" && trim(arr_translation[i].substring(10)) != "") {
+        			arr_plain.splice(i, 1);
+        			i = i - 1;
+        		}
+    		} else {
+    			if (trim(arr_plain[i].substring(10)) == "") {
+        			arr_plain.splice(i, 1);
+        			i = i - 1;
+        		}
+    		}
+    	}
+    	for (var i = 0; i < arr_translation.length; i++) {
+    		if (arr_translation[i] == null || trim(arr_translation[i]) == "") {
+    			arr_translation.splice(i, 1);
+    			i = i - 1;
+    		}
+    		if (arr_plain[i] != null) {
+    			if (trim(arr_translation[i].substring(10)) == "" && trim(arr_plain[i].substring(10)) != "") {
+        			arr_translation.splice(i, 1);
+        			i = i - 1;
+        		}
+    		} else {
+    			if (trim(arr_translation[i].substring(10)) == "") {
+        			arr_translation.splice(i, 1);
+        			i = i - 1;
+        		}
+    		}
+    	}
+    }
+
+    // for (var i = 0; i < arr_plain.length; i++) {
+    // 	qm_trace(arr_plain[i]);
+    // }
+    // qm_trace("########################################");
+    // for (var i = 0; i < arr_translation.length; i++) {
+    // 	qm_trace(arr_translation[i]);
+    // }
+
+
+    // 开始拼接歌词和翻译
     var translated_lyrics = "";
-    for (var i = translation.indexOf("kana") == -1 ? 5 : 6; i < arr_plain.length; i++) {
+    for (var i = 0; i < arr_plain.length; i++) {
         translated_lyrics += trim(arr_plain[i]) + "\r\n";
         var timestamp = "";
-        if (i < arr_plain.length - 1) {
+        if (i < arr_plain.length - 1 && arr_plain[i + 1].indexOf("[") != -1) {
             timestamp = "[" + format_time(to_millisecond(arr_plain[i + 1].substr(1, 8))) + "]";
         }
         else {
             timestamp = "[" + format_time(to_millisecond(arr_translation[i].substr(1, 8)) + 1000) + "]";
-        }
-        
-        if (arr_translation[i].substring(10) == "" && arr_plain[i].substring(10) != "") {
-        	arr_translation.splice(i, 1);
         }
 
         var translation_line = "";
@@ -299,6 +363,7 @@ function qm_generate_translation(plain, translation) {
             translated_lyrics += timestamp + "「" + translation_line + "」" + "\r\n";
         }
     }
+    // qm_trace(translated_lyrics);
 
     return translated_lyrics;
 }
@@ -315,7 +380,7 @@ function qm_generate_single_line(plain) {
     var arr_plain = plain.split("\n");
     var single_line_lyrics = "";
     for (var i = 0; i < arr_plain.length; i++) {
-        single_line_lyrics += arr_plain[i] + "\r\n";
+        single_line_lyrics += trim(arr_plain[i]) + "\r\n";
         var timestamp = "";
         if (i < arr_plain.length - 1) {
             timestamp = "[" + format_time(to_millisecond(arr_plain[i + 1].substr(1, 8))) + "]";
