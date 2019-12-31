@@ -20,7 +20,7 @@
  * true: 以双行显示
  * false: 以单行显示 
 **/
-var dual_line = true;
+var dual_line = false;
 
 var QM_CFG = {
     DEBUG: false,
