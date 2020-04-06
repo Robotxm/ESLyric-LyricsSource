@@ -383,14 +383,15 @@ function qm_generate_single_line(plain) {
         single_line_lyrics += trim(arr_plain[i]) + "\r\n";
         var timestamp = "";
         if (i < arr_plain.length - 1) {
-            timestamp = "[" + format_time(to_millisecond(arr_plain[i + 1].substr(1, 8))) + "]";
+            timestamp = format_time(to_millisecond(arr_plain[i + 1].substr(1, 8)));
         }
         else {
-            timestamp = "[" + format_time(to_millisecond(arr_plain[i].substr(1, 8)) + 1000) + "]";
+            timestamp = format_time(to_millisecond(arr_plain[i].substr(1, 8)) + 1000);
         }
-        single_line_lyrics += timestamp + "　　" + "\r\n";
+        if (!isNaN(timestamp)) {
+            single_line_lyrics += "[" + timestamp + "]" + "　　" + "\r\n";
+        }
     }
-
     return single_line_lyrics;
 }
 
