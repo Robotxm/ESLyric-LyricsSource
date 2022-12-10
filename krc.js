@@ -69,8 +69,8 @@ function krcToLrc(krcContent) {
     let lrcMetaLines = 0
     let hasTranslation = false
     if (krcContent.indexOf("language") != -1 && krcContent.indexOf("eyJjb250ZW50IjpbXSwidmVyc2lvbiI6MX0=") == -1) {
-        let translationRegex = krcContent.match(/language:(.*)/g)
-        let translationJson = atob(translationRegex[0].substring(0, translationRegex[0].length - 1).replace("language:", ""))
+        let translationMatchResult = krcContent.match(/language:(.*)/g)
+        let translationJson = atob(translationMatchResult[0].substring(0, translationMatchResult[0].length - 1).replace("language:", ""))
         let translationObject = JSON.parse(translationJson)
         for (let j = 0; j < translationObject.content.length; j++) {
             if (translationObject.content[j].type == 1) {
@@ -132,7 +132,7 @@ function krcToLrc(krcContent) {
         const lrcContentCurrentLine = lrcLines[lrcContentCurrentLineIndex]
         const lrcContentCurrentLineStartTimestamp = lrcContentCurrentLine.substring(1, 9)
 
-        lrcContentWithTranslation += `${lrcContentCurrentLine}\n[${lrcContentCurrentLineStartTimestamp}]` + (krcTranslation[translationCurrentLine] == "" ? "　　" : krcTranslation[translationCurrentLine]) + "\n"
+        lrcContentWithTranslation += `${lrcContentCurrentLine}\n[${lrcContentCurrentLineStartTimestamp}]` + (krcTranslation[translationCurrentLine][0] == "" ? "　　" : krcTranslation[translationCurrentLine][0]) + "\n"
     }
     return `${lrcMetaInfo}\n${lrcContentWithTranslation}`
 }
