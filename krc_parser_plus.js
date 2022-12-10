@@ -2,7 +2,7 @@
  * KRC Parser Plus (Original 'KRC Parser')
  * Original Author: btx258
  * Modified by: Robotxm
- * Version: 0.3.7
+ * Version: 0.3.8
  * License: GPL 3.0
  * Description: Make foobar2000 with ESLyric able to parse
  *              KRC and translated lyrics if they exist.
@@ -22,37 +22,12 @@
 **/
 var dual_line = false;
 
-/** 
- * Define whether to use beta function.
- * true: Enablde beta function
- * false: Disable beta function
- * 是否使用测试功能。此功能主要用于使存在翻译时歌词的显示效果与酷狗音乐一致。原理是在每一行歌词原文前添加一个空格。
- * 此空格不会被 ESLyric 显示，因此并不会影响观感。
- * 如果有处理歌词文件的需求，请避免使用测试功能。
- * true: 启用 Beta 测试功能
- * false: 禁用 Beta 测试功能
-**/
-var beta = true;
-
-/**
- * Define whether to use alpha function.
- * NOTICE: If lyrics shows incorrectly, set to false and open an issue.
- * true: Enable alpha function
- * false: Disable alpha function
- * 是否使用 Alpha 测试功能。此功能主要是使得 ESLyric 成为真正的“逐字”模式。原理和酷狗一样，使用“开始”和“结束”
- * 两个时间标签控制一个字符。
- * 注意：如果启用后出现歌词显示错误，请关闭并提交 issue。
- * true: 启用 Alpha 测试功能
- * false: 禁用 Alpha 测试功能
- */
-var alpha = true;
-
 function get_my_name() {
     return "KRC Parser Plus";
 }
 
 function get_version() {
-    return "0.3.7";
+    return "0.3.8";
 }
 
 function get_author() {
@@ -150,11 +125,9 @@ function krc2lrc(text) {
                 var _sub_start = parseInt(_sub_time[0], 10);
                 var _sub_duaration = parseInt(_sub_time[1], 10);
                 var cnt = arr[2];
-                buf = buf + "[" + format_time(_start + _sub_start) + "]" + cnt + (alpha ? ("[" + format_time(_start + _sub_start + _sub_duaration) + "]") : "");
+                buf = buf + "[" + format_time(_start + _sub_start) + "]" + cnt + "[" + format_time(_start + _sub_start + _sub_duaration) + "]";
                 _duaration = parseInt(_sub_start + _sub_duaration, 10);
             }
-            if (!alpha)
-                buf = buf + "[" + format_time(_start + _duaration) + "]";
             _end = _start + _duaration;
             lrcBuf += buf + "\r\n";
         }
@@ -162,50 +135,38 @@ function krc2lrc(text) {
 
     // Add translation if exists
     if (btrans) {
-        if (beta) {
-            var lrc_lines = lrcBuf.split("\r\n");
-            for (var k = 0; k < trans.length; k++) {
-                if (k != trans.length - 1) {
-                    if (k == 0) {
+        var lrc_lines = lrcBuf.split("\r\n");
+        for (var k = 0; k < trans.length; k++) {
+            if (k != trans.length - 1) {
+                if (k == 0) {
+                    if (ToMilliSec(lrc_lines[k + lc].substr(lrc_lines[k + lc].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc + 1].substr(1, 8)))
+                        lrcBuf2 += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k] == "" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
+                    else
+                        lrcBuf2 += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].substr(0, 10) + (trans[k] == "" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].substr(0, 10) + "\r\n";
+                }
+                else {
+                    if (ToMilliSec(lrc_lines[k + lc - 1].substr(lrc_lines[k + lc - 1].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc].substr(1, 8))) {
+                        if (ToMilliSec(lrc_lines[k + lc].substr(lrc_lines[k + lc].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc + 1].substr(1, 8)))
+                            lrcBuf2 += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k] == "" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
+                        else
+                            lrcBuf2 += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].substr(0, 10) + (trans[k] == "" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].substr(0, 10) + "\r\n";
+                    }
+                    else {
                         if (ToMilliSec(lrc_lines[k + lc].substr(lrc_lines[k + lc].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc + 1].substr(1, 8)))
                             lrcBuf2 += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k] == "" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
                         else
                             lrcBuf2 += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].substr(0, 10) + (trans[k] == "" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].substr(0, 10) + "\r\n";
                     }
-                    else {
-                        if (ToMilliSec(lrc_lines[k + lc - 1].substr(lrc_lines[k + lc - 1].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc].substr(1, 8))) {
-                            if (ToMilliSec(lrc_lines[k + lc].substr(lrc_lines[k + lc].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc + 1].substr(1, 8)))
-                                lrcBuf2 += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k] == "" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
-                            else
-                                lrcBuf2 += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].substr(0, 10) + (trans[k] == "" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].substr(0, 10) + "\r\n";
-                        }
-                        else {
-                            if (ToMilliSec(lrc_lines[k + lc].substr(lrc_lines[k + lc].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc + 1].substr(1, 8)))
-                                lrcBuf2 += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc].slice(-10) + (trans[k] == "" ? "　　" : trans[k]) + lrc_lines[k + lc].slice(-10) + "\r\n";
-                            else
-                                lrcBuf2 += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].substr(0, 10) + (trans[k] == "" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].substr(0, 10) + "\r\n";
-                        }
-                    }
-                }
-                else {
-                    if (ToMilliSec(lrc_lines[k + lc - 1].substr(lrc_lines[k + lc - 1].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc].substr(1, 8)))
-                        lrcBuf2 += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + "\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k] == "" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
-                    else
-                        lrcBuf2 += lrc_lines[k + lc] + "\r\n[" + format_time(_end + 1001) + "]" + (trans[k] == "" ? "　　" : trans[k]) + "[" + format_time(_end + 1001) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
                 }
             }
-            lrcBuf = lrcMeta + "\r\n" + lrcBuf2;
-        }
-        else {
-            var lrc_lines = lrcBuf.split("\r\n");
-            for (var k = 0; k < trans.length; k++) {
-                if (k != trans.length - 1)
-                    lrcBuf2 += lrc_lines[k + lc] + "\r\n" + lrc_lines[k + lc + 1].slice(0, 10) + (trans[k] == "" ? "　　" : trans[k]) + lrc_lines[k + lc + 1].slice(0, 10) + "\r\n";
+            else {
+                if (ToMilliSec(lrc_lines[k + lc - 1].substr(lrc_lines[k + lc - 1].length - 9, 8)) < ToMilliSec(lrc_lines[k + lc].substr(1, 8)))
+                    lrcBuf2 += lrc_lines[k + lc - 1].slice(-10) + " " + lrc_lines[k + lc] + "\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k] == "" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
                 else
-                    lrcBuf2 += lrc_lines[k + lc] + "\r\n" + "[" + format_time(_end + 1000) + "]" + (trans[k] == "" ? "　　" : trans[k]) + "[" + format_time(_end + 1000) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
+                    lrcBuf2 += lrc_lines[k + lc] + "\r\n[" + format_time(_end + 1001) + "]" + (trans[k] == "" ? "　　" : trans[k]) + "[" + format_time(_end + 1001) + "]" + "\r\n" + "[" + format_time(_end + 1001) + "]　\r\n";
             }
-            lrcBuf = lrcMeta + "\r\n" + lrcBuf2;
         }
+        lrcBuf = lrcMeta + "\r\n" + lrcBuf2;
     }
 
     // Process something about single-line mode
