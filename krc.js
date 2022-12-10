@@ -98,7 +98,7 @@ function krcToLrc(krcContent) {
                 }
             }
             // Process case where 'offset' tags is named as 'manualoffset' in some krc files
-            if (metaInfoMatches[1].endsWith("offset")) {
+            if (metaInfoMatches[1].endsWith("offset") && lrcMetaInfo.indexOf("[offset:") == -1) {
                 lrcMetaInfo += `[offset:${metaInfoMatches[2]}]\n`
                 lrcMetaLines++
             }
