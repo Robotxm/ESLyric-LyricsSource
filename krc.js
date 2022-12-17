@@ -10,7 +10,7 @@
 
 export function getConfig(cfg) {
     cfg.name = "KRC Parser Plus"
-    cfg.version = "0.1"
+    cfg.version = "0.2"
     cfg.author = "Robotxm"
     cfg.parsePlainText = false
     cfg.fileType = "krc"
@@ -132,7 +132,12 @@ function krcToLrc(krcContent) {
         const lrcContentCurrentLine = lrcLines[lrcContentCurrentLineIndex]
         const lrcContentCurrentLineStartTimestamp = lrcContentCurrentLine.substring(1, 9)
 
-        lrcContentWithTranslation += `${lrcContentCurrentLine}\n[${lrcContentCurrentLineStartTimestamp}]` + (krcTranslation[translationCurrentLine][0] == "" ? "　　" : krcTranslation[translationCurrentLine][0]) + "\n"
+        let currentLineTranslation = krcTranslation[translationCurrentLine][0]
+        if (currentLineTranslation == '\\') {
+            currentLineTranslation = '　　'
+        }
+
+        lrcContentWithTranslation += `${lrcContentCurrentLine}\n[${lrcContentCurrentLineStartTimestamp}]` + (currentLineTranslation ?? "　　") + "\n"
     }
     return `${lrcMetaInfo}\n${lrcContentWithTranslation}`
 }
