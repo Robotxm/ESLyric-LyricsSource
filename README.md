@@ -1,5 +1,7 @@
 # ESLyric-LyricsSource
 
+**DO NOT** feedback anything related to ESLyirc plugin. I am **NOT** the author of plugin and not responsible for anything about it!
+
 ## KRC Parser Plus
 An advanced krc parser for ESLyric. Originally created by btx258. Modified by Robotxm.
 
