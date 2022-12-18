@@ -131,27 +131,26 @@ function qrcToLrc(xmlText) {
 
     let lyricText = ""
     let matches
-    let metaRegex = /^\[(\S+):(\S+)\]$/
-    let tsRegex = /^\[(\d+),(\d+)\]/
-    let ts2Regex = /([^(^\]]*)\((\d+),(\d+)\)/g
-    let lines = qrcText.split(/[\r\n]/)
+    const metaRegex = /^\[(\S+):(\S+)\]$/
+    const tsRegex = /^\[(\d+),(\d+)\]/
+    const ts2Regex = /([^(^\]]*)\((\d+),(\d+)\)/g
+    const lines = qrcText.split(/[\r\n]/)
     for (const line of lines) {
         //console.log(line)
         if (matches = metaRegex.exec(line)) { // meta info
             lyricText += matches[0] + "\r\n"
         } else if (matches = tsRegex.exec(line)) {
             let lyricLine = ""
-            let baseTime = parseInt(matches[1])
-            let duration = parseInt(matches[2])
-            lyricLine += "[" + formatTime(baseTime) + "]"
-            lyricLine += "<" + formatTime(baseTime) + ">"
+            const baseTime = parseInt(matches[1])
+            const duration = parseInt(matches[2])
+            lyricLine += `[${formatTime(baseTime)}]`
             // parse sub-timestamps
             let subMatches
             while (subMatches = ts2Regex.exec(line)) {
-                let startTime = parseInt(subMatches[2])
-                let offset = parseInt(subMatches[3])
-                let subWord = subMatches[1]
-                lyricLine += subWord + "<" + formatTime(startTime + offset) + ">"
+                const startTime = parseInt(subMatches[2])
+                const offset = parseInt(subMatches[3])
+                const subWord = subMatches[1]
+                lyricLine += `<${formatTime(startTime)}>${subWord}<${formatTime(startTime + offset)}>`
             }
             lyricText += lyricLine + "\r\n"
         }
