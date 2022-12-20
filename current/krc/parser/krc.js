@@ -133,7 +133,7 @@ function krcToLrc(krcContent) {
         const lrcContentCurrentLineStartTimestamp = lrcContentCurrentLine.substring(1, 9)
 
         let currentLineTranslation = krcTranslation[translationCurrentLine][0]
-        if (currentLineTranslation == '\\') {
+        if (currentLineTranslation == '//') {
             currentLineTranslation = '　　'
         }
 
