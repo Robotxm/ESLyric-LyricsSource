@@ -2,7 +2,7 @@ import * as decoder from "parser_ext.so"
 
 export function getConfig(cfg) {
     cfg.name = "QRC JSON Parser"
-    cfg.version = "0.1"
+    cfg.version = "0.2"
     cfg.author = "Robotxm"
     cfg.parsePlainText = true
     cfg.fileType = "qrcjson"
@@ -24,10 +24,12 @@ function mergeLyricsAndTranslation(lyrics, translation) {
         return lyrics
     }
 
+    const lyricsLines = lyrics.split("\n")
+    const translationLines = translation.split("\n")
+
     const metaInfoRegex = /^\[([^\d:][^:]*):([^:]*)\]\s*$/
 
     // Step 1: Parse meta info
-    let lrcMetaLines = 0
     let hasAddedMetaInfo = false
     let lrcMetaInfo = ""
     const lines = lyrics.split(/[\n\r]/)
@@ -36,40 +38,78 @@ function mergeLyricsAndTranslation(lyrics, translation) {
         let metaInfoMatches = []
         if (!hasAddedMetaInfo && (metaInfoMatches = metaInfoRegex.exec(line))) {
             lrcMetaInfo += `${metaInfoMatches[0]}\n`
-            lrcMetaLines++
         }
     }
 
-    // Step 2: Add translation
-    const lrcLines = lyrics.split("\n")
-    const translationLines = translation.split("\n")
+    // Step 2: Remove all meta info for future use
+    let lyricsStartLineIndex = 0
+    let translationStartLineIndex = 0
+    for (var i = 0; i < 6; i++) {
+        if (lyricsLines[i].indexOf("[ti:") >= 0 || lyricsLines[i].indexOf("[ar:") >= 0 || lyricsLines[i].indexOf("[al:") >= 0 || lyricsLines[i].indexOf("[by:") >= 0 || lyricsLines[i].indexOf("[offset:") >= 0 || lyricsLines[i].indexOf("[kana:") >= 0) {
+            lyricsStartLineIndex++
+        }
+        if (translationLines[i].indexOf("[ti:") >= 0 || translationLines[i].indexOf("[ar:") >= 0 || translationLines[i].indexOf("[al:") >= 0 || translationLines[i].indexOf("[by:") >= 0 || translationLines[i].indexOf("[offset:") >= 0 || translationLines[i].indexOf("[kana:") >= 0) {
+            translationStartLineIndex++
+        }
+    }
+    lyricsLines.splice(0, lyricsStartLineIndex)
+    translationLines.splice(0, translationStartLineIndex)
+
+    // Step 3: Align lyrics and translation
+    if (lyricsLines.length != translationLines.length) {
+        for (var i = 0; i < lyricsLines.length; i++) {
+            if (lyricsLines[i] == null || trim(lyricsLines[i]) == "") {
+                lyricsLines.splice(i, 1)
+                i = i - 1
+            }
+            if (translationLines[i] != null) {
+                if (trim(lyricsLines[i].substring(10)) == "" && trim(translationLines[i].substring(10)) != "") {
+                    lyricsLines.splice(i, 1)
+                    i = i - 1
+                }
+            } else {
+                if (trim(lyricsLines[i].substring(10)) == "") {
+                    lyricsLines.splice(i, 1)
+                    i = i - 1
+                }
+            }
+        }
+        for (var i = 0; i < translationLines.length; i++) {
+            if (translationLines[i] == null || trim(translationLines[i]) == "") {
+                translationLines.splice(i, 1)
+                i = i - 1
+            }
+            if (lyricsLines[i] != null) {
+                if (trim(translationLines[i].substring(10)) == "" && trim(lyricsLines[i].substring(10)) != "") {
+                    translationLines.splice(i, 1)
+                    i = i - 1
+                }
+            } else {
+                if (trim(translationLines[i].substring(10)) == "") {
+                    translationLines.splice(i, 1)
+                    i = i - 1
+                }
+            }
+        }
+    }
+
+    // Step 4: Add translation
     let lrcContentWithTranslation = ""
-    let translationMetaLines = 0
-    for (let translationCurrentLine = 0; translationCurrentLine < translationLines.length; translationCurrentLine++) {
-        let currentLineTranslation = translationLines[translationCurrentLine]
-        if (metaInfoRegex.test(currentLineTranslation)) {
-            translationMetaLines++
-            continue
-        }
+    for (var i = 0; i < lyricsLines.length; i++) {
+        lrcContentWithTranslation += trim(lyricsLines[i]) + "\n"
 
-        if (translationLines.length - translationMetaLines > lrcLines.length - lrcMetaLines) {
-            console.log(`Lyrics lines: ${lrcLines.length - lrcMetaLines}, translation lines: ${translationLines.length - translationMetaLines}. Too many translation, skip...`)
-            return lyrics
-        }
-
-        currentLineTranslation = currentLineTranslation.replace(/^\[(\d+):(\d+).(\d+)\]/, '')
-        if (currentLineTranslation == '//') {
-            currentLineTranslation = '　　'
-        }
-
-        const lrcContentCurrentLineIndex = translationCurrentLine - translationMetaLines + lrcMetaLines
-
-        const lrcContentCurrentLine = lrcLines[lrcContentCurrentLineIndex]
-        const lrcContentCurrentLineStartTimestamp = lrcContentCurrentLine.substring(1, 9)
-
-        lrcContentWithTranslation += `${lrcContentCurrentLine}\n[${lrcContentCurrentLineStartTimestamp}]` + (currentLineTranslation ?? '　　') + '\n'
+        const timestamp = lyricsLines[i].substring(0, 10)
+        const currentLineTranslation = trim(translationLines[i]).replace("//", "　　")
+        lrcContentWithTranslation += timestamp + currentLineTranslation.substring(10, currentLineTranslation.length) + "\n"
     }
+
     return `${lrcMetaInfo}\n${lrcContentWithTranslation}`
+}
+
+function trim(str) {
+    return str.replace(/^(\s|\xA0)+|(\s|\xA0)+$/g, '')
+        .replace(/&apos;/g, '\'')
+        .replace(/&amp;/g, '&')
 }
 
 function decryptQrc(content) {
@@ -96,7 +136,15 @@ function decryptQrc(content) {
 }
 
 function escapeXml(xmlText) {
-    return xmlText.replace(/&/g, '&amp;')
+    xmlText = xmlText.replace(/&/g, '&amp;')
+
+    const lyricContentArr = /LyricContent="([(\s\S)]*)"/gm.exec(xmlText)
+    if (lyricContentArr && lyricContentArr.length >= 2) {
+        const lyricContent = lyricContentArr[1]
+        xmlText = xmlText.replace(lyricContent, lyricContent.replace(/\"/g, "&quot;"))
+    }
+
+    return xmlText
 }
 
 function qrcToLrc(xmlText) {
