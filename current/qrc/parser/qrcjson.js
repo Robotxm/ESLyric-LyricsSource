@@ -58,11 +58,11 @@ function mergeLyricsAndTranslation(lyrics, translation) {
     // Step 3: Align lyrics and translation
     if (lyricsLines.length != translationLines.length) {
         for (var i = 0; i < lyricsLines.length; i++) {
-            if (lyricsLines[i] == null || trim(lyricsLines[i]) == "") {
+            if (!lyricsLines[i] || trim(lyricsLines[i]) == "") {
                 lyricsLines.splice(i, 1)
                 i = i - 1
             }
-            if (translationLines[i] != null) {
+            if (translationLines[i]) {
                 if (trim(lyricsLines[i].substring(10)) == "" && trim(translationLines[i].substring(10)) != "") {
                     lyricsLines.splice(i, 1)
                     i = i - 1
@@ -75,11 +75,11 @@ function mergeLyricsAndTranslation(lyrics, translation) {
             }
         }
         for (var i = 0; i < translationLines.length; i++) {
-            if (translationLines[i] == null || trim(translationLines[i]) == "") {
+            if (!translationLines[i] || trim(translationLines[i]) == "") {
                 translationLines.splice(i, 1)
                 i = i - 1
             }
-            if (lyricsLines[i] != null) {
+            if (lyricsLines[i]) {
                 if (trim(translationLines[i].substring(10)) == "" && trim(lyricsLines[i].substring(10)) != "") {
                     translationLines.splice(i, 1)
                     i = i - 1
@@ -118,17 +118,17 @@ function decryptQrc(content) {
     }
 
     const zippedData = decoder.decodeQrc(restoreQrc(content))
-    if (zippedData == null) {
+    if (!zippedData) {
         return
     }
 
     const unzippedQrcData = zlib.uncompress(zippedData)
-    if (unzippedQrcData == null) {
+    if (!unzippedQrcData) {
         return
     }
 
     const decryptedContent = qrcToLrc(arrayBufferToString(unzippedQrcData))
-    if (decryptedContent == null) {
+    if (!decryptedContent) {
         return
     }
 
@@ -148,63 +148,45 @@ function escapeXml(xmlText) {
 }
 
 function qrcToLrc(xmlText) {
+    // Some xml texts are missing <?xml ... ?> header, add it back
+    if (xmlText && typeof xmlText === 'string' && xmlText.indexOf('<?xml') == -1 && xmlText.startsWith("<QrcInfos>")) {
+        xmlText = '<?xml version="1.0" encoding="UTF-8"?>\n' + xmlText
+    }
 
-    if (xmlText != null && typeof xmlText === 'string' && xmlText.indexOf('<?xml') == -1) {
+    if (xmlText && typeof xmlText === 'string' && xmlText.indexOf('<?xml') == -1) {
         return xmlText
     }
 
     let xmlRoot = mxml.loadString(xmlText)
-    if (xmlRoot == null) {
+    if (!xmlRoot) {
         xmlText = escapeXml(xmlText)
         xmlRoot = mxml.loadString(xmlText)
     }
-    if (xmlRoot == null) {
+    if (!xmlRoot) {
         console.log("parse xml failed: " + xmlText)
         return
     }
-    let lyricElement = xmlRoot.findElement("Lyric_1", mxml.MXML_DESCEND)
-    if (lyricElement == null)
+    const lyricElement = xmlRoot.findElement("Lyric_1", mxml.MXML_DESCEND)
+    if (!lyricElement) {
         return null
-
-    let lyricType = lyricElement.getAttr("LyricType")
-    if (lyricType == null)
-        return null
-
-    if (parseInt(lyricType) != 1) // unsupported type??? not sure
-        return null
-
-    let qrcText = lyricElement.getAttr("LyricContent")
-    if (qrcText == null)
-        return null
-
-    let lyricText = ""
-    let matches
-    const metaRegex = /^\[(\S+):(\S+)\]$/
-    const tsRegex = /^\[(\d+),(\d+)\]/
-    const ts2Regex = /([^(^\]]*)\((\d+),(\d+)\)/g
-    const lines = qrcText.split(/[\r\n]/)
-    for (const line of lines) {
-        //console.log(line)
-        if (matches = metaRegex.exec(line)) { // meta info
-            lyricText += matches[0] + "\r\n"
-        } else if (matches = tsRegex.exec(line)) {
-            let lyricLine = ""
-            const baseTime = parseInt(matches[1])
-            const duration = parseInt(matches[2])
-            lyricLine += `[${formatTime(baseTime)}]`
-            // parse sub-timestamps
-            let subMatches
-            while (subMatches = ts2Regex.exec(line)) {
-                const startTime = parseInt(subMatches[2])
-                const offset = parseInt(subMatches[3])
-                const subWord = subMatches[1]
-                lyricLine += `<${formatTime(startTime)}>${subWord}<${formatTime(startTime + offset)}>`
-            }
-            lyricText += lyricLine + "\r\n"
-        }
     }
 
-    return lyricText
+    const lyricType = lyricElement.getAttr("LyricType")
+    if (!lyricType)
+        return null
+
+    if (parseInt(lyricType) != 1) { // unsupported type??? not sure
+        return null
+    }
+
+    const qrcText = lyricElement.getAttr("LyricContent")
+    if (!qrcText) {
+        return null
+    }
+
+    return qrcText
+        .replace(/^\[(\d+),(\d+)\]/gm, (_, base, __) => `[${formatTime(+base)}]<${formatTime(+base)}>`)
+        .replace(/\((\d+),(\d+)\)/g, (_, start, offset) => `<${formatTime(+start + +offset)}>`)
 }
 
 function zpad(n) {
