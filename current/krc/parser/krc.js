@@ -130,6 +130,10 @@ function krcToLrc(krcContent) {
         const lrcContentCurrentLineIndex = translationCurrentLine + lrcMetaLines
 
         const lrcContentCurrentLine = lrcLines[lrcContentCurrentLineIndex]
+        if (!lrcContentCurrentLine) {
+            continue
+        }
+
         const lrcContentCurrentLineStartTimestamp = lrcContentCurrentLine.substring(1, 9)
 
         let currentLineTranslation = krcTranslation[translationCurrentLine][0]
