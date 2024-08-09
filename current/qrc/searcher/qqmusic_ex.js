@@ -1,12 +1,18 @@
-﻿
-/*
- All credits to https://github.com/jsososo/QQMusicApi
-                https://github.com/xmcp/QRCD
-*/
+﻿/**
+ * QQMusic Searcher Ex
+ * Original Author: ohyeah
+ * Modified by: Robotxm
+ * Version: 0.2
+ * License: GPL 3.0
+ * Description: Make foobar2000 with ESLyric able to search QRC Lyrics from QQMusic.
+ * Github: https://github.com/Robotxm/ESLyric-LyricsSource
+ * Acknowledgement: https://github.com/jsososo/QQMusicApi
+                    https://github.com/xmcp/QRCD
+**/
 
 export function getConfig(cfg) {
     cfg.name = "QQ 音乐 Ex"
-    cfg.version = "0.1"
+    cfg.version = "0.2"
     cfg.author = "Robotxm"
 }
 

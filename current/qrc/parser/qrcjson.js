@@ -1,3 +1,12 @@
+/**
+ * QRCJSON Parser
+ * Author: Robotxm
+ * Version: 0.2
+ * License: GPL 3.0
+ * Description: Make foobar2000 with ESLyric able to parse QRC Lyrics from QQMusic.
+ * Github: https://github.com/Robotxm/ESLyric-LyricsSource
+**/
+
 import * as decoder from "parser_ext.so"
 
 export function getConfig(cfg) {
