@@ -1,7 +1,7 @@
 # Current
 
-Only for new version of ESLyric. 
+仅供新版本 ESLyric 使用。
 
-Lyrics will be parsed to [enhanced format](https://en.wikipedia.org/wiki/LRC_(file_format)#Enhanced_format) of LRC, which is not compatible with the old version of ESLyric.
+歌词将被转换为 LRC [增强格式](https://en.wikipedia.org/wiki/LRC_(file_format)#Enhanced_format)，与旧版本 ESLyric 不兼容。
 
-Copy the files in the corresponding directory depending on your usage.
+根据需要复制对应目录下的文件即可。

@@ -1,3 +1,3 @@
-# KRC Parser Plus for new ESLyric
+# KRC Parser Plus (新版 ESLyric)
 
-Replace `krc.js` in `parser` folder of ESLyric with the file provided by this repository.
+用本仓库 `parser` 文件夹下的 `krc.js` 替换 ESLyric 对应的文件。

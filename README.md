@@ -1,19 +1,21 @@
 # ESLyric-LyricsSource
 
-Advanced lyrics sources for ESLyric. Provides more accurate timestamp and translation for KuGou, QQMusic and NetEase Music (QQMusic and NetEase are only available in current version) sources of ESLyric.
+一些用于 ESLyric 的高级歌词源，将 KRC (酷狗)、QRC (QQ 音乐) 和 YRC (网易云音乐) 的逐字歌词和翻译歌词转换为 ESLyric 支持的格式。
 
-**DO NOT** feedback anything related to ESLyirc plugin. I am **NOT** the author of plugin and not responsible for anything about it!
+**不要**在这里反馈任何与 ESLyric 插件相关的问题，我**不是**其作者，不负任何责任！
 
-## Which to use
+佛系更新，有问题**肯定不会**及时解决。
+
+## 用哪个版本
 
 ## Legacy
 
-If you are using old version of ESLyric, use files in this folder.
+如果你的 ESLyric 是老版本，用这里的文件。
 
-Provides KuGou, QQMusic and NetEase Music sources, all of which supports more accurate timestamp and translation.
+仅酷狗支持逐字歌词和翻译歌词。
 
 ## Current
 
-Use files in this folder if you are using new version of ESLyric.
+新版本 ESlyric 使用这里的文件。
 
-Provices KuGou and QQMusic sources. Only the one for KuGou supports more accurate timestamp and translation, the one for QQMusic supports just more accurate timestamp.
+酷狗、QQ 音乐和网易云音乐三个歌词源都支持逐字和翻译歌词。

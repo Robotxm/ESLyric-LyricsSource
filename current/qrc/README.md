@@ -1,11 +1,11 @@
-# QQMusic Ex
+# QQ 音乐 Ex
 
-Copy `parser` and `searcher` folders to `scripts` folder of ESLyrics.
+复制 `parser` and `searcher` 两个文件夹到 ESLyric 的 `scripts` 文件夹下。
 
-## Why `qrcjson`?
+## 为什么会有 `qrcjson`？
 
-It is a workaround to process original lyrics and translation in one pass.
+为了能够在一次过程中同时处理原始歌词和翻译歌词所采用的中间格式。
 
-## Why do some audios have translation in QQMusic but ESLyric?
+## 为什么某些音乐在 QQ 音乐中有翻译歌词，但在 ESLyric 中使用本仓库的脚本之后也没有？
 
-QQMusic uses a tricky way to append translation, which is hard to process by normal ways.
+QQ 音乐对于歌词翻译的处理规则相对复杂，本仓库的脚本无法处理所有情况。
