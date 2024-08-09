@@ -39,13 +39,24 @@ export function getLyrics(meta, man) {
         if (err || res.statusCode != 200) {
             return
         }
-        let xml_doc = mxml.loadString(body)
-        let song_list = xml_doc.findElement('songinfo') || []
-        for (const song of song_list) {
+        let xmlDoc = mxml.loadString(body)
+        let songList = xmlDoc.findElement('songinfo') || []
+        // Get singer name from common data
+        const songName = decodeURIComponent(xmlDoc.findElement('songname').getFirstChild().getCDATA())
+        const singerName = decodeURIComponent(xmlDoc.findElement('singer').getFirstChild().getCDATA())
+        for (const song of songList) {
             let id = song.getAttr('id')
             if (id == null) continue
             let title = decodeURIComponent(getChildElementCDATA(song, 'name'))
+            if (!title || title.length === 0) {
+                title = songName
+            }
+
             let artist = decodeURIComponent(getChildElementCDATA(song, 'singername'))
+            if (!artist || artist.length === 0) {
+                artist = singerName
+            }
+
             let album = decodeURIComponent(getChildElementCDATA(song, 'albumname'))
 
             stageSongList.push({ id: id, title: title, artist: artist, album: album })
@@ -162,7 +173,7 @@ function queryLyricV3(meta, man, songList)
                 ++lyricCount
 
             } catch (e) {
-                console.log("[qqmusic]request lyric exception: " + e.message)
+                console.log("[qqmusic_ex] queryLyricV3 request lyric exception: " + e.message)
             }
         })
     }
@@ -244,7 +255,7 @@ function queryLyric(meta, man)
 
     let stageSongList = []
     request(settings, (err, res, body) => {
-        console.log(err + url)
+        console.log("[qqmusic_ex] queryLyrics: " + err + " " + url)
         if (!err && res.statusCode === 200) {
             try {
                 let obj = JSON.parse(body)
@@ -266,7 +277,7 @@ function queryLyric(meta, man)
                     stageSongList.push({ title: title, album: album, artist: artist, songmid: songmid })
                 }
             } catch (e) {
-                console.log('qqmusic exception: ' + e.message)
+                console.log('[qqmusic_ex] queryLyrics exception: ' + e.message)
             }
         }
     })
@@ -309,7 +320,7 @@ function queryLyric(meta, man)
                     lyricMeta.lyricText = lyric
                     man.addLyric(lyricMeta)
                 } catch (e) {
-                    console.log('qqmusic parse lyric response exception: ' + e.message)
+                    console.log('[qqmusic_ex] queryLyrics parse lyric response exception: ' + e.message)
                 }
             }
         })
