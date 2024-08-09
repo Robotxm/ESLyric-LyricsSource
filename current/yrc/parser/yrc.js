@@ -1,7 +1,7 @@
 /**
  * NetEase Cloud Music YRC Lyrics Parser
  * Author: Robotxm
- * Version: 0.1
+ * Version: 0.2
  * License: GPL 3.0
  * Description: Make foobar2000 with ESLyric able to parse YRC and translated lyrics if exist.
  * Github: https://github.com/Robotxm/ESLyric-LyricsSource
@@ -9,7 +9,7 @@
 
 export function getConfig(cfg) {
     cfg.name = "YRC Parser"
-    cfg.version = "0.1"
+    cfg.version = "0.2"
     cfg.author = "Robotxm"
     cfg.parsePlainText = true
     cfg.fileType = "yrc"
@@ -45,7 +45,14 @@ function yrcToLrc(yrcContent) {
     const translationTimestampRegexB = /^\[(\d+):(\d+)\]/
 
     if (hasYRCTranslation) {
-        yrcTranslation = yrcTranslationString.replace(metaInfoRegex, "").replace("\\n", "\n").trim().split(/[\n\r]/).map(line => line.replace(translationTimestampRegexA, "").replace(translationTimestampRegexB, ""))
+        yrcTranslation = yrcTranslationString.replace(metaInfoRegex, "").replace("\\n", "\n").trim().split(/[\n\r]/).map(line => {
+            const startTimestamp = line.match(translationTimestampRegexA)[0]
+            if (startTimestamp) {
+                return line.replace(startTimestamp, convertTimestamp(startTimestamp))
+            } else {
+                return line
+            }
+        })
     }
     if (hasLRCTranslation) {
         lrcTranslation = lrcTranslationString.replace(metaInfoRegex, "").replace("\\n", "\n").trim().split(/[\n\r]/).map(line => line.replace(translationTimestampRegexA, "").replace(translationTimestampRegexB, ""))
@@ -102,20 +109,23 @@ function yrcToLrc(yrcContent) {
 
     let lrcLines = lrcPlainContent.split("\n")
     let lrcContentWithTranslation = ""
+
     const tranlationLines = hasYRCTranslation ? yrcTranslation : lrcTranslation
-    for (let translationCurrentLine = 0; translationCurrentLine < tranlationLines.length; translationCurrentLine++) {
-        const lrcContentCurrentLineIndex = translationCurrentLine + lrcMetaLines
 
-        const lrcContentCurrentLine = lrcLines[lrcContentCurrentLineIndex]
-        const lrcContentCurrentLineStartTimestamp = lrcContentCurrentLine.substring(1, 9)
+    const translationStartTimestamp = tranlationLines[0]?.slice(0, 11)
+    const translationFirstLineIndexInLrcContent = lrcLines.findIndex(line => line.startsWith(translationStartTimestamp))
 
-        let currentLineTranslation = tranlationLines[translationCurrentLine]
-        if (currentLineTranslation == '//') {
-            currentLineTranslation = '　　'
+    for (let lrcCurrentLine = 0; lrcCurrentLine < lrcLines.length; lrcCurrentLine++) {
+        const lrcContentCurrentLine = lrcLines[lrcCurrentLine]
+        lrcContentWithTranslation += `${lrcContentCurrentLine}\n`
+
+        const expectedTranslationLineIndex = translationFirstLineIndexInLrcContent + lrcCurrentLine
+        const expectedTranslationLine = tranlationLines[expectedTranslationLineIndex]
+        if (expectedTranslationLine) {
+            lrcContentWithTranslation += `${expectedTranslationLine}\n`
         }
-
-        lrcContentWithTranslation += `${lrcContentCurrentLine}\n[${lrcContentCurrentLineStartTimestamp}]` + (currentLineTranslation ?? "　　") + "\n"
     }
+    
     return `${lrcMetaInfo}\n${lrcContentWithTranslation}`
 }
 
@@ -134,4 +144,15 @@ function formatTime(time) {
     const ms = t - s
     const str = (h ? zpad(h) + ":" : "") + zpad(m) + ":" + zpad(s) + "." + zpad(Math.floor(ms * 100))
     return str
+}
+
+/**
+ * Convert [xx:xx.xxx] to [xx:xx.xxx]
+ */
+function convertTimestamp(originalTimestamp) {
+    const minutes = parseInt(originalTimestamp.slice(1, 3), 10)
+    const seconds = parseInt(originalTimestamp.slice(4, 6), 10)
+    const milliseconds = parseInt(originalTimestamp.slice(7, 10), 10)
+
+    return `[${formatTime(minutes * 60 * 1000 + seconds * 1000 + milliseconds)}]`
 }
