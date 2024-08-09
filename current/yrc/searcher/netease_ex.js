@@ -2,7 +2,7 @@
  * NetEase Cloud Music Lyrics Searcher Ex
  * Original Author: ohyeah
  * Modified by: Robotxm
- * Version: 0.1
+ * Version: 0.2
  * License: GPL 3.0
  * Description: Make foobar2000 with ESLyric able to parse lyrics provided by NetEase Cloud Music.
  * Github: https://github.com/Robotxm/ESLyric-LyricsSource
@@ -118,7 +118,7 @@ const procKeywords = (str) => {
 
 export function getConfig(config) {
     config.name = "网易云音乐 Ex"
-    config.version = "0.1"
+    config.version = "0.2"
     config.author = "Robotxm"
 }
 
@@ -223,7 +223,7 @@ function parseLyricResponse(item, man, body) {
 
             // Append translation if exists
             if (lyricObj['tlyric']) {
-                lyricText += lyricObj['tlyric']['lyric']?.replace(/^\{(.*)\}\s*/mg, "")?.trim() ?? ''
+                lyricText += "\n" + lyricObj['tlyric']['lyric']?.replace(/^\{(.*)\}\s*/mg, "")?.trim() ?? ''
             }
 
             lyricsMetadata.title = item.title
