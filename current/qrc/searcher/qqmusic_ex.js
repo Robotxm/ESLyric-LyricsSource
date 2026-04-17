@@ -7,7 +7,7 @@
  * Description: Make foobar2000 with ESLyric able to search QRC Lyrics from QQMusic.
  * Github: https://github.com/Robotxm/ESLyric-LyricsSource
  * Acknowledgement: https://github.com/jsososo/QQMusicApi
-                    https://github.com/xmcp/QRCD
+                    https://github.com/chenmozhijin/LDDC
 **/
 
 export function getConfig(cfg) {
@@ -52,7 +52,10 @@ export function getLyrics(meta, man) {
         const singerName = decodeURIComponent(xmlDoc.findElement('singer').getFirstChild().getCDATA())
         for (const song of songList) {
             let id = song.getAttr('id')
-            if (id == null) continue
+            if (id == null) {
+                continue
+            }
+
             let title = decodeURIComponent(getChildElementCDATA(song, 'name'))
             if (!title || title.length === 0) {
                 title = songName
@@ -76,14 +79,9 @@ export function getLyrics(meta, man) {
             queryLyricV2(meta, man, stageSongList)
         }
     }
-
-    // obsolete
-    //queryLyric(meta, man)
-
 }
 
-function queryLyricV3(meta, man, songList)
-{
+function queryLyricV3(meta, man, songList) {
     let lyricCount = 0
     let headers = {}
     headers['Referer'] = 'https://y.qq.com'
@@ -113,25 +111,25 @@ function queryLyricV3(meta, man, songList)
         }
     }
 
-    for(const song of songList) {
+    for (const song of songList) {
         let songID = song.id | 0
         postData['music.musichallSong.PlayLyricInfo.GetPlayLyricInfo']['param'] = {
-            albumName : btoa(song.album),
-            crypt : 1,
-            ct : 19,
-            cv : 1873,
-            interval : meta.duration | 0,
-            lrc_t : 0,
-            qrc : 1,
-            qrc_t : 0,
-            roma : 1,
-            roma_t : 0,
-            singerName : btoa(song.album),
-            songID : songID,
-            songName : btoa(song.artist),
-            trans : 1,
-            trans_t : 0,
-            type : -1
+            albumName: btoa(song.album),
+            crypt: 1,
+            ct: 19,
+            cv: 1873,
+            interval: meta.duration | 0,
+            lrc_t: 0,
+            qrc: 1,
+            qrc_t: 0,
+            roma: 1,
+            roma_t: 0,
+            singerName: btoa(song.album),
+            songID: songID,
+            songName: btoa(song.artist),
+            trans: 1,
+            trans_t: 0,
+            type: -1
         }
 
         let url = 'https://u.y.qq.com/cgi-bin/musicu.fcg?'
@@ -146,12 +144,12 @@ function queryLyricV3(meta, man, songList)
             headers: headers,
             body: postDataString
         }
-    
+
         request(settings, (err, res, body) => {
             if (err || res.statusCode != 200) {
                 return
             }
-            
+
             try {
                 let obj = JSON.parse(body)
                 if (obj['code'] != 0) {
@@ -187,8 +185,7 @@ function queryLyricV3(meta, man, songList)
     return lyricCount
 }
 
-function queryLyricV2(meta, man, songList)
-{
+function queryLyricV2(meta, man, songList) {
     let headers = {}
     headers['Referer'] = 'https://y.qq.com'
 
@@ -220,113 +217,21 @@ function queryLyricV2(meta, man, songList)
                 let lyrics = xmlRoot.findElement('lyric') || []
                 for (const lyricEntry of lyrics) {
                     let content = getChildElementCDATA(lyricEntry, 'content')
-                    if (content == null) continue
+                    if (content == null) {
+                        continue
+                    }
+
                     let lyricData = restoreQrc(content)
-                    if (lyricData == null) continue
+                    if (lyricData == null) {
+                        continue
+                    }
+
                     lyricMeta.title = song.title
                     lyricMeta.artist = song.artist
                     lyricMeta.album = song.album
                     lyricMeta.lyricData = lyricData
                     lyricMeta.fileType = 'qrc'
                     man.addLyric(lyricMeta)
-                }
-            }
-        })
-    }
-}
-
-function queryLyric(meta, man)
-{
-    let headers = {}
-    headers['Referer'] = 'https://y.qq.com'
-
-    // qury LRC lyrics
-    let queryNum = 10
-    let url = 'http://c.y.qq.com/soso/fcgi-bin/client_search_cp?'
-    let data = {
-        format: 'json',
-        n: queryNum,
-        p: 0,
-        w: meta.title + '+' + meta.artist,
-        cr: 1,
-        g_tk: 5381
-    }
-    url += querystring.stringify(data)
-
-    let settings = {
-        method: 'get',
-        url: url,
-        headers: headers
-    }
-
-    let stageSongList = []
-    request(settings, (err, res, body) => {
-        console.log("[qqmusic_ex] queryLyrics: " + err + " " + url)
-        if (!err && res.statusCode === 200) {
-            try {
-                let obj = JSON.parse(body)
-                let data = obj['data'] || {}
-                let song = data['song'] || {}
-                let song_list = song['list'] || {}
-                for (const song_entry of song_list) {
-                    let title = song_entry['songname'] || ''
-                    let album = song_entry['albumname'] || ''
-                    let artist = ''
-                    let artist_list = song_entry['singer'] || []
-                    if (artist_list.length > 0) {
-                        artist = artist_list[0]['name'] || ''
-                    }
-                    let songmid = song_entry['songmid'] || ''
-                    if (songmid === '') {
-                        continue
-                    }
-                    stageSongList.push({ title: title, album: album, artist: artist, songmid: songmid })
-                }
-            } catch (e) {
-                console.log('[qqmusic_ex] queryLyrics exception: ' + e.message)
-            }
-        }
-    })
-
-    let lyricMeta = man.createLyric()
-    for (const result of stageSongList) {
-        url = 'http://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg?'
-        data = {
-            songmid: result.songmid,
-            pcachetime: new Date().getTime(),
-            g_tk: 5381,
-            loginUin: 0,
-            hostUin: 0,
-            inCharset: 'utf8',
-            outCharset: 'utf-8',
-            notice: 0,
-            platform: 'yqq',
-            needNewCode: 1,
-            format: 'json'
-        }
-        url += querystring.stringify(data)
-        settings = {
-            method: 'get',
-            url: url,
-            headers: headers
-        }
-
-        request(settings, (err, res, body) => {
-            if (!err && res.statusCode === 200) {
-                lyricMeta.title = result.title
-                lyricMeta.artist = result.artist
-                lyricMeta.album = result.album
-                try {
-                    let obj = JSON.parse(body)
-                    let b64lyric = obj['lyric'] || ''
-                    let b64tlyric = data['trans'] || ''
-                    let lyric = atob(b64lyric)
-                    let tlyric = atob(b64tlyric)
-                    if (tlyric != '') lyric += tlyric
-                    lyricMeta.lyricText = lyric
-                    man.addLyric(lyricMeta)
-                } catch (e) {
-                    console.log('[qqmusic_ex] queryLyrics parse lyric response exception: ' + e.message)
                 }
             }
         })
