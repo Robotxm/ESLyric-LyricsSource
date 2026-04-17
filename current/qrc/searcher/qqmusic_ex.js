@@ -1,8 +1,10 @@
-﻿/**
+﻿import { decryptQrc } from "qrc-decryptor/qrc-decryptor.js"
+
+/**
  * QQMusic Searcher Ex
  * Original Author: ohyeah
  * Modified by: Robotxm
- * Version: 0.2
+ * Version: 0.3
  * License: GPL 3.0
  * Description: Make foobar2000 with ESLyric able to search QRC Lyrics from QQMusic.
  * Github: https://github.com/Robotxm/ESLyric-LyricsSource
@@ -167,8 +169,9 @@ function queryLyricV3(meta, man, songList) {
                 }
 
                 let lyricMeta = man.createLyric()
-                lyricMeta.title = song.title
-                lyricMeta.artist = song.artist
+                const lyricInfo = extractLyricInfo(lyricObj['lyric'])
+                lyricMeta.title = lyricInfo.title || song.title
+                lyricMeta.artist = lyricInfo.artist || song.artist
                 lyricMeta.album = song.album
                 lyricMeta.fileType = 'qrcjson'
                 lyricMeta.lyricText = JSON.stringify(lyricObj)
@@ -265,4 +268,35 @@ function restoreQrc(hexText) {
     }
 
     return arrBuf.buffer
+}
+
+function extractLyricInfo(encryptedLyric) {
+    if (!encryptedLyric) {
+        return {}
+    }
+
+    try {
+        const plainLyrics = decryptQrc(encryptedLyric)
+        if (!plainLyrics) {
+            return {}
+        }
+
+        return {
+            title: extractLyricMetaValue(plainLyrics, 'ti'),
+            artist: extractLyricMetaValue(plainLyrics, 'ar')
+        }
+    } catch (e) {
+        console.log("[qqmusic_ex] extract lyric info exception: " + e.message)
+        return {}
+    }
+}
+
+function extractLyricMetaValue(text, tagName) {
+    const regex = new RegExp('^\\[' + tagName + ':(.*)\\]$', 'm')
+    const match = regex.exec(text)
+    return match == null ? '' : trim(match[1])
+}
+
+function trim(str) {
+    return String(str || '').replace(/^(\s|\xA0)+|(\s|\xA0)+$/g, '')
 }
