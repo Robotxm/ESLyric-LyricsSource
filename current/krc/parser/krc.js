@@ -136,12 +136,13 @@ function krcToLrc(krcContent) {
 
         const lrcContentCurrentLineStartTimestamp = lrcContentCurrentLine.substring(1, 9)
 
-        let currentLineTranslation = krcTranslation[translationCurrentLine][0]
-        if (currentLineTranslation == '//') {
-            currentLineTranslation = '　　'
+        const currentLineTranslation = krcTranslation[translationCurrentLine]?.[0]
+        if (currentLineTranslation == null || currentLineTranslation == '//' || currentLineTranslation.trim() == '') {
+            lrcContentWithTranslation += `${lrcContentCurrentLine}\n`
+            continue
         }
 
-        lrcContentWithTranslation += `${lrcContentCurrentLine}\n[${lrcContentCurrentLineStartTimestamp}]` + (currentLineTranslation ?? "　　") + "\n"
+        lrcContentWithTranslation += `${lrcContentCurrentLine}\n[${lrcContentCurrentLineStartTimestamp}]${currentLineTranslation}\n`
     }
     return `${lrcMetaInfo}\n${lrcContentWithTranslation}`
 }
