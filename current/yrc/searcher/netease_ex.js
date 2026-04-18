@@ -18,6 +18,7 @@ evalLib('querystring/querystring.min.js')
 
 const iv = crypto.enc.Latin1.parse('0102030405060708')
 const linuxapiKey = crypto.enc.Latin1.parse('rFgB&h#%2?^eDg:Q')
+const eApiKey = crypto.enc.Latin1.parse('e82ckenh8dichen8')
 const anonymousToken = "bf8bfeabb1aa84f9c8c3906c04a04fb864322804c83f5d607e91a04eae463c9436bd1a17ec353cf780b396507a3f7464e8a60f4bbc019437993166e004087dd32d1490298caf655c2353e58daa0bc13cc7d5c198250968580b12c1b8817e3f5c807e650dd04abd3fb8130b7ae43fcc5b"
 
 const aesEncrypt = (buffer, mode, key, iv) => {
@@ -58,6 +59,11 @@ const doRequest = (method, url, data, options) => {
             headers['User-Agent'] = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36'
             headers['Cookie'] = `MUSIC_A=${anonymousToken}`
             url = 'https://music.163.com/api/linux/forward'
+        } else if (options.crypto === 'eapi') {
+            data = eApi(options.url, data)
+            headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+            headers['Origin'] = 'https://music.163.com'
+            headers['Referer'] = 'https://music.163.com'
         } else {
             reject()
             return
@@ -98,26 +104,43 @@ export function getLyrics(meta, man) {
     const title = procKeywords(meta.rawTitle)
     const artist = procKeywords(meta.rawArtist)
     const data = {
-        s: title + " " + artist,
-        type: 1,
+        keyword: title + " " + artist,
+        needCorrect: '1',
+        channel: 'typing',
+        offset: 0,
+        scene: 'normal',
+        total: true,
         limit: 10,
-        offset: 0
     }
 
     doRequest('POST',
-        'https://music.163.com/weapi/search/get',
+        'https://interface.music.163.com/eapi/batch',
         data,
-        { crypto: 'linuxapi' }
+        {
+            crypto: 'eapi',
+            url: '/api/search/song/list/page'
+        }
     ).then((body) => {
         let candicates = parseSearchResults(body)
         for (const item of candicates) {
             const queryData = {
-                id: item.id
+                id: item.id,
+                cp: false,
+                tv: 0,
+                lv: 0,
+                rv: 0,
+                kv: 0,
+                yv: 0,
+                ytv: 0,
+                yrv: 0,
             };
             doRequest('POST',
-                'https://music.163.com/weapi/song/lyric?lv=-1&kv=-1&tv=-1',
+                'https://interface3.music.163.com/eapi/song/lyric/v1',
                 queryData,
-                { crypto: 'linuxapi' }
+                {
+                    crypto: 'eapi',
+                    url: '/api/song/lyric/v1'
+                }
             ).then((body) => {
                 parseLyricResponse(item, man, body)
             })
@@ -131,24 +154,16 @@ function parseSearchResults(body) {
     let candicates = []
     try {
         let obj = JSON.parse(body)
-        let results = obj['result'] || {}
-        let songs = results['songs'] || []
-        for (const song of songs) {
+        let resources = obj['data']?.['resources'] || []
+        for (const resource of resources) {
+            let song = resource['baseInfo']?.['simpleSongData'] || {}
             if (typeof (song['id']) === 'undefined' || typeof (song['name']) === 'undefined') {
                 continue
             }
             let id = song['id']
             let title = song['name']
-            let artist = ''
-            let artists = song['artists'] || []
-            for (const item of artists) {
-                if ('name' in item) {
-                    artist = item['name']
-                    break
-                }
-            }
-            let album = song['album'] || {}
-            album = album['name'] || ''
+            let artist = (song['ar'] || []).map(item => item['name']).filter(Boolean).join(' / ')
+            let album = song['al']?.['name'] || ''
             candicates.push({ id: id, title: title, artist: artist, album: album })
         }
     } catch (e) { }
@@ -167,7 +182,7 @@ function parseLyricResponse(item, man, body) {
             lyricsMetadata.artist = item.artist
             lyricsMetadata.album = item.album
             lyricsMetadata.lyricText = body
-            lyricsMetadata.fileType = 'yrc'
+            lyricsMetadata.fileType = 'yrcjson'
             man.addLyric(lyricsMetadata)
         } else {
             let lyricText = ''
