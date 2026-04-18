@@ -2,7 +2,7 @@
  * KRC Parser Plus
  * Original Author: ohyeah
  * Modified by: Robotxm
- * Version: 0.1
+ * Version: 0.2.1
  * License: GPL 3.0
  * Description: Make foobar2000 with ESLyric able to parse KRC and translated lyrics if exist.
  * Github: https://github.com/Robotxm/ESLyric-LyricsSource
@@ -10,7 +10,7 @@
 
 export function getConfig(cfg) {
     cfg.name = "KRC Parser Plus"
-    cfg.version = "0.2"
+    cfg.version = "0.2.1"
     cfg.author = "Robotxm"
     cfg.parsePlainText = false
     cfg.fileType = "krc"
